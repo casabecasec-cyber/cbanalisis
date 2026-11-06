@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planificador Tributario EC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: mesa de trabajo de contador — formularios a la izquierda, conciliación tipo Formulario 101 a la derecha */
+:root{
+  --paper:#F2F5F3; --surface:#FFFFFF; --sunk:#E8EEEA; --ink:#15212B; --muted:#58666F; --line:#D3DBD6;
+  --accent:#0E6A5B; --accent-soft:#D9ECE5; --warn:#9A5A08; --warn-soft:#F6EBD8; --bad:#AE372E; --bad-soft:#F6DFDC; --good:#2B7746; --good-soft:#DDEFE2;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F161B; --surface:#162028; --sunk:#1C2832; --ink:#E4EBE8; --muted:#94A2AA; --line:#2B3944;
+  --accent:#4DB59D; --accent-soft:#163029; --warn:#E3A64B; --warn-soft:#33281A; --bad:#EC7F73; --bad-soft:#3A201E; --good:#6DC48C; --good-soft:#18301F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F161B; --surface:#162028; --sunk:#1C2832; --ink:#E4EBE8; --muted:#94A2AA; --line:#2B3944;
+  --accent:#4DB59D; --accent-soft:#163029; --warn:#E3A64B; --warn-soft:#33281A; --bad:#EC7F73; --bad-soft:#3A201E; --good:#6DC48C; --good-soft:#18301F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;border-bottom:2px solid var(--ink);padding-bottom:14px}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(26px,4vw,36px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:68ch}
+.stamp{font-family:var(--f-mono);font-size:12px;color:var(--accent);border:1.5px solid var(--accent);padding:4px 10px;border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;margin:16px 0 20px;border-bottom:1px solid var(--line)}
+nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+h2{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 10px;font-weight:600}
+p{margin:0}
+.lead{color:var(--muted);max-width:70ch}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+input[type=number],select{font-family:var(--f-mono);font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);width:100%}
+input[type=checkbox]{accent-color:var(--accent);width:17px;height:17px;margin:2px 0 0;flex:none}
+.lever{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;padding:12px 0;border-top:1px solid var(--line)}
+.lever:first-of-type{border-top:0}
+.lever .t{font-weight:600}
+.lever .tag{font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.tag.c{background:var(--accent-soft);color:var(--accent)}
+.tag.a{background:var(--good-soft);color:var(--good)}
+.tag.r{background:var(--warn-soft);color:var(--warn)}
+.lever .body{grid-column:2;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lever .legal{font-size:12.5px;color:var(--muted)}
+.lever .legal b{color:var(--ink);font-weight:500;font-family:var(--f-mono);font-size:12px}
+.lever .row{display:flex;flex-wrap:wrap;gap:8px}
+.lever .row label.f{flex:1 1 140px}
+.lever.off .row{opacity:.45}
+.plain{display:flex;flex-direction:column;gap:6px;background:var(--sunk);border-radius:4px;padding:10px 12px;font-size:13.5px;max-width:70ch}
+.plain .ej{color:var(--muted)}
+.plain b{color:var(--ink)}
+details.legal summary{font-weight:500;font-size:12.5px;color:var(--accent);padding:0}
+details.legal>div{margin-top:4px}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:10px 0 6px}
+.howto div{border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:13px}
+.howto .tag{margin:0 0 4px;display:inline-block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--sunk);border-radius:5px;padding:12px}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .v{font-family:var(--f-mono);font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi.hl{background:var(--accent-soft)}
+.kpi.hl .v{color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+td.n,th.n{text-align:right;font-family:var(--f-mono);white-space:nowrap}
+tr.sum td{font-weight:600;border-top:1.5px solid var(--ink);border-bottom:0}
+tr.sub td{color:var(--muted)}
+tr.best td{background:var(--accent-soft)}
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar{display:grid;grid-template-columns:minmax(120px,1.3fr) minmax(0,3fr);gap:10px;align-items:center}
+.bar .nm{font-size:13px}
+.bar .nm small{display:block;color:var(--muted);font-size:11.5px}
+.bar .track{position:relative;height:28px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.bar .fill{position:absolute;inset:0 auto 0 0;display:flex}
+.bar .fill span{height:100%}
+.bar .val{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:12.5px;font-weight:500;color:var(--ink)}
+.seg-pt{background:color-mix(in srgb,var(--warn) 70%,transparent)}
+.seg-ir{background:color-mix(in srgb,var(--accent) 75%,transparent)}
+.seg-dv{background:color-mix(in srgb,var(--bad) 55%,transparent)}
+.seg-ss{background:color-mix(in srgb,var(--muted) 55%,transparent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 12px;border-radius:0 4px 4px 0;font-size:13.5px}
+.note.w{border-color:var(--warn);background:var(--warn-soft)}
+.note.b{border-color:var(--bad);background:var(--bad-soft)}
+.recs{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.recs li{padding:10px 12px;border:1px solid var(--line);border-radius:4px;font-size:13.5px}
+.recs li b{font-weight:600}
+.pill{display:inline-block;font-size:11px;font-family:var(--f-mono);padding:1px 7px;border-radius:10px;margin-right:6px}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.pill.w{background:var(--warn-soft);color:var(--warn)}
+.pill.no{background:var(--bad-soft);color:var(--bad)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+.flow{width:100%;height:auto;display:block}
+.flow text{font-family:var(--f-body);fill:var(--ink)}
+.flow .mono{font-family:var(--f-mono);font-size:12px}
+.flow .mut{fill:var(--muted);font-size:11px}
+.legal-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.legal-list .item{border:1px solid var(--line);border-radius:5px;padding:12px;background:var(--surface)}
+.legal-list .item .ref{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.legal-list .item p{font-size:13.5px;margin-top:4px}
+footer{margin-top:28px;color:var(--muted);font-size:12.5px;max-width:90ch}
+.view[hidden]{display:none!important}
+table.sas input,table.sas select{min-width:96px;padding:6px 8px}
+table.sas input.txt{font-family:var(--f-body);font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);min-width:130px;width:100%}
+table.sas td{vertical-align:middle}
+details summary{cursor:pointer;font-weight:600;padding:4px 0}
+@media (prefers-reduced-motion:no-preference){.bar .fill span{transition:width .35s ease}}
+
+.fbbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:13.5px}
+.fbbar input{font-family:var(--f-body);font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;flex:1 1 170px}
+.btn{font:inherit;font-weight:500;padding:7px 14px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
+.btn.sec{background:transparent;color:var(--accent)}
+.btn.del{border-color:var(--bad);color:var(--bad);background:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+.fbst{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.fbst.ok{color:var(--good)}.fbst.err{color:var(--bad)}
+.esc{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.esc .it{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+.esc .it b{font-weight:600}.esc .it small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:11.5px}
+.esc .act{display:flex;gap:6px;flex-wrap:wrap}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>Planificador Tributario EC</h1>
+    <p class="sub">Escenarios legales para reducir participación laboral e impuesto a la renta, comparar formas de facturar y entender el IVA en la cadena y en grupos económicos.</p>
+  </div>
+  <span class="stamp">NORMATIVA VIGENTE · NOV 2026</span>
+</header>
+
+<nav class="tabs" aria-label="Áreas">
+  <a href="#utilidad" data-v="utilidad">1 · Utilidad, participación e IR</a>
+  <a href="#facturacion" data-v="facturacion">2 · Formas de facturar</a>
+  <a href="#iva" data-v="iva">3 · IVA y grupo económico</a>
+  <a href="#sas" data-v="sas">4 · Simulación SAS</a>
+  <a href="#provisiones" data-v="provisiones">5 · Provisiones</a>
+  <a href="#base-legal" data-v="base-legal">Base legal y riesgos</a>
+</nav>
+<div class="fbbar" id="fb_bar">
+  <span class="fbst" id="fb_st">Conectando…</span>
+  <div id="fb_out" style="display:flex;flex-wrap:wrap;gap:8px;flex:1 1 420px" hidden>
+    <input type="email" id="fb_email" placeholder="Correo" autocomplete="username">
+    <input type="password" id="fb_pass" placeholder="Contraseña" autocomplete="current-password">
+    <button class="btn" id="fb_login" type="button">Ingresar</button>
+    <button class="btn sec" id="fb_google" type="button">Ingresar con Google</button>
+  </div>
+  <div id="fb_in" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1 1 420px;justify-content:flex-end" hidden>
+    <span id="fb_user" style="color:var(--muted)"></span>
+    <button class="btn sec" id="fb_open" type="button">Escenarios guardados</button>
+    <button class="btn sec" id="fb_logout" type="button">Salir</button>
+  </div>
+</div>
+<div class="panel" id="fb_panel" style="margin-bottom:20px" hidden>
+  <h2>Escenarios guardados</h2>
+  <p class="lead">Guarda todos los datos de las cinco áreas con un nombre. Al cargar uno, el programa se recalcula completo.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+    <input type="text" id="fb_name" placeholder="Nombre, por ejemplo: ALTATEN cierre 2026 – con reinversión" style="flex:1 1 280px;font-family:var(--f-body);font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink)">
+    <button class="btn" id="fb_save" type="button">Guardar escenario actual</button>
+  </div>
+  <div class="esc" id="fb_list"></div>
+</div>
+
+<!-- ============ ÁREA 1 ============ -->
+<section class="view" id="v-utilidad">
+<div class="grid">
+  <div class="stack">
+    <div class="panel">
+      <h2>Datos del ejercicio</h2>
+      <p class="lead" style="margin-bottom:14px">Ingrese la utilidad contable <b>antes</b> de participación de trabajadores e impuesto a la renta. Los valores de ejemplo son ilustrativos.</p>
+      <div class="fields">
+        <label class="f">Régimen / tipo de sociedad
+          <select id="u_tipo">
+            <option value="general">Sociedad – régimen general (25%)</option>
+            <option value="calif">Exportador habitual / manufactura ≥50% componente nacional / turismo receptivo</option>
+            <option value="rimpe">Sociedad RIMPE emprendedor (ingresos ≤ USD 300.000)</option>
+          </select></label>
+        <label class="f">Tamaño de empresa
+          <select id="u_tam">
+            <option value="mp">Micro o pequeña</option>
+            <option value="mg">Mediana o grande</option>
+          </select></label>
+        <label class="f">Ingresos brutos anuales (USD)<input type="number" id="u_ing" value="1200000" min="0" step="1000"></label>
+        <label class="f">Utilidad contable antes de 15% e IR<input type="number" id="u_uc" value="180000" step="1000"></label>
+        <label class="f">Gastos no deducibles registrados<input type="number" id="u_nd" value="6000" min="0" step="100"></label>
+        <label class="f">Ingresos exentos<input type="number" id="u_ex" value="0" min="0" step="100"></label>
+        <label class="f">Tipo de compañía (reserva legal)
+          <select id="u_rl"><option value="0.10">Sociedad anónima – 10%</option><option value="0.05">Cía. Ltda. – 5%</option><option value="0">SAS – sin reserva obligatoria</option></select></label>
+      </div>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="u_ya"> Los seguros médicos, sueldos y patrocinios de las palancas F–I ya están registrados en la utilidad (aplicar solo la deducción adicional)</label>
+    </div>
+
+    <div class="panel">
+      <h2>Palancas legales</h2>
+      <p class="lead">Son las herramientas que la ley permite para pagar menos. Marque solo las que su empresa realmente puede usar y respaldar con documentos. Hay tres tipos:</p>
+      <div class="howto">
+        <div><span class="tag c">contable</span><br>Baja la ganancia del año. Reduce el 15% de trabajadores <b>y</b> el impuesto a la renta.</div>
+        <div><span class="tag a">adicional</span><br>La ley deja restar un valor extra solo para calcular el impuesto. No cambia el 15% de trabajadores.</div>
+        <div><span class="tag r">tarifa</span><br>No cambia la ganancia: baja el porcentaje de impuesto que se aplica.</div>
+      </div>
+      <div id="levers"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Dividendos y utilidades retenidas</h2>
+      <div class="fields" style="margin-top:10px">
+        <label class="f">% de la utilidad neta a distribuir<input type="number" id="d_pct" value="60" min="0" max="100"></label>
+        <label class="f">Socios personas naturales residentes<input type="number" id="d_soc" value="2" min="1" step="1"></label>
+        <label class="f">Tarifa de retención
+          <select id="d_tar"><option value="0.12">12% – beneficiario efectivo residente</option><option value="0.14">14% – paraíso fiscal en la cadena o sin reporte societario</option><option value="0.10">10% – socio no residente</option></select></label>
+        <label class="f">Utilidades acumuladas de años anteriores (al 31-jul)<input type="number" id="d_acum" value="650000" min="0" step="1000"></label>
+        <label class="f">Dividendos / reinversión / reserva legal ene–jul<input type="number" id="d_resta" value="120000" min="0" step="1000"></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="panel">
+      <h2>Resultado del escenario configurado</h2>
+      <div class="kpis" id="u_kpis" style="margin-top:12px"></div>
+    </div>
+    <div class="panel">
+      <h2>Escenarios comparados</h2>
+      <p class="lead">Cada escenario suma un grupo de palancas activas al anterior. La barra muestra la carga total: participación + IR + impuesto a dividendos.</p>
+      <div class="bars" id="u_bars" style="margin-top:14px"></div>
+      <div class="legend"><span><i class="seg-pt"></i>15% trabajadores</span><span><i class="seg-ir"></i>Impuesto a la renta</span><span><i class="seg-dv"></i>IR sobre dividendos</span></div>
+    </div>
+    <div class="panel">
+      <h2>Conciliación tributaria</h2>
+      <p class="lead" style="margin-bottom:8px">Base vs. escenario configurado, en el orden del Formulario 101.</p>
+      <div class="tw"><table id="u_conc"></table></div>
+      <div id="u_conc_note"></div>
+    </div>
+    <div class="panel">
+      <h2>Lectura profesional</h2>
+      <ul class="recs" id="u_recs" style="margin-top:10px"></ul>
+    </div>
+    <div class="panel">
+      <h2>Pago a cuenta sobre utilidades no distribuidas</h2>
+      <p class="lead">Art. 39.2.1 LRTI (Ley Orgánica de Transparencia Social, R.O. 112, 28-ago-2025; Res. NAC-DGERCGC26-00000026). Tarifa única sobre el 100% del saldo al 31 de julio.</p>
+      <div id="u_pac" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ ÁREA 2 ============ -->
+<section class="view" id="v-facturacion" hidden>
+<div class="grid">
+  <div class="stack">
+    <div class="panel">
+      <h2>La misma actividad, distintas formas de facturar</h2>
+      <p class="lead" style="margin-bottom:14px">Compare cuánto queda en manos del dueño según quién factura y bajo qué régimen. Supone que la utilidad se distribuye en su totalidad.</p>
+      <div class="fields">
+        <label class="f">Ingresos anuales facturados (USD)<input type="number" id="f_y" value="240000" min="0" step="1000"></label>
+        <label class="f">Costos y gastos deducibles reales<input type="number" id="f_c" value="150000" min="0" step="1000"></label>
+        <label class="f">Socios / dueños (personas naturales)<input type="number" id="f_n" value="1" min="1" step="1"></label>
+        <label class="f">Sueldo anual del socio-administrador (opción sociedad)<input type="number" id="f_s" value="36000" min="0" step="1000"></label>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+        <label class="chk"><input type="checkbox" id="f_trab" checked> Tiene trabajadores en relación de dependencia (genera 15% de participación)</label>
+        <label class="chk"><input type="checkbox" id="f_rimpeok" checked> La actividad no está excluida del RIMPE (no son servicios profesionales, ocupaciones liberales, consultoría, etc.)</label>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Facturación por tipo de operación</h2>
+      <div class="tw" style="margin-top:8px"><table>
+        <thead><tr><th>Operación</th><th>IVA</th><th>Efecto y base legal</th></tr></thead>
+        <tbody>
+          <tr><td>Bienes y servicios generales</td><td class="n">15%</td><td>Débito fiscal; crédito tributario pleno en compras relacionadas (Arts. 65–66 LRTI).</td></tr>
+          <tr><td>Canasta básica, medicinas, salud, educación, transporte de pasajeros, arriendo de vivienda</td><td class="n">0%</td><td>No genera débito, pero el IVA de compras se vuelve costo en la proporción de ventas 0% (Arts. 55, 56 y 66 LRTI).</td></tr>
+          <tr><td>Exportación de bienes y servicios</td><td class="n">0%</td><td>Conserva crédito pleno y permite solicitar devolución del IVA pagado (Art. 72 LRTI). Requiere cumplir condiciones de exportación de servicios del Reglamento.</td></tr>
+          <tr><td>Reembolso de gastos</td><td class="n">el original</td><td>Se factura sin margen, adjuntando los comprobantes originales; no es ingreso del que reembolsa (Reglamento de Comprobantes de Venta, Retención y Documentos Complementarios).</td></tr>
+          <tr><td>Descuentos y devoluciones</td><td class="n">ajusta</td><td>Por nota de crédito reducen base de IVA e IR; un descuento fuera de factura no reduce nada.</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>Retenciones en la fuente de IR</h2>
+      <p class="lead" style="margin-bottom:8px">Res. NAC-DGERCGC26-00000009, vigente desde 1-mar-2026. Solo retienen los agentes designados por el SRI. Son crédito tributario, no gasto: afectan la caja, no el impuesto final.</p>
+      <div class="tw"><table><tbody>
+        <tr><td>Negocios populares RIMPE</td><td class="n">0%</td></tr>
+        <tr><td>RIMPE emprendedores, transporte, productores agrícolas</td><td class="n">1%</td></tr>
+        <tr><td>Bienes muebles, seguros, construcción</td><td class="n">2%</td></tr>
+        <tr><td>Servicios donde prevalece la mano de obra; pagos no tipificados</td><td class="n">3%</td></tr>
+        <tr><td>Servicios profesionales y comisiones a sociedades</td><td class="n">5%</td></tr>
+        <tr><td>Honorarios de personas naturales, arrendamientos</td><td class="n">10%</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+  <div class="stack">
+    <div class="panel">
+      <h2>Carga tributaria por alternativa</h2>
+      <div class="bars" id="f_bars" style="margin-top:14px"></div>
+      <div class="legend"><span><i class="seg-pt"></i>15% trabajadores</span><span><i class="seg-ir"></i>IR del negocio</span><span><i class="seg-dv"></i>IR dividendos</span><span><i class="seg-ss"></i>IR personal + IESS del sueldo</span></div>
+    </div>
+    <div class="panel">
+      <h2>Detalle</h2>
+      <div class="tw" style="margin-top:8px"><table id="f_tab"></table></div>
+    </div>
+    <div class="panel">
+      <h2>Lectura profesional</h2>
+      <ul class="recs" id="f_recs" style="margin-top:10px"></ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ============ ÁREA 3 ============ -->
+<section class="view" id="v-iva" hidden>
+<div class="stack">
+  <div class="grid">
+    <div class="stack">
+      <div class="panel">
+        <h2>¿Qué pasa con el IVA cuando compro con IVA y vendo con IVA?</h2>
+        <p class="lead" style="margin-bottom:14px">Valores mensuales. El IVA no es costo ni ingreso para quien vende gravado: lo cobra en ventas (débito), descuenta lo pagado en compras (crédito) y entrega la diferencia. Solo se vuelve costo cuando parte de las ventas son tarifa 0% no exportadas.</p>
+        <div class="fields">
+          <label class="f">Ventas base tarifa 15%<input type="number" id="i_vg" value="80000" min="0" step="500"></label>
+          <label class="f">Ventas base tarifa 0%<input type="number" id="i_v0" value="0" min="0" step="500"></label>
+          <label class="f">Exportaciones (0% con derecho a crédito)<input type="number" id="i_vx" value="0" min="0" step="500"></label>
+          <label class="f">Compras y gastos base gravados 15%<input type="number" id="i_cg" value="50000" min="0" step="500"></label>
+          <label class="f">Retenciones de IVA recibidas de clientes<input type="number" id="i_ret" value="1800" min="0" step="100"></label>
+          <label class="f">Crédito tributario del mes anterior<input type="number" id="i_ca" value="0" min="0" step="100"></label>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <h2>Liquidación del mes</h2>
+        <div class="kpis" id="i_kpis" style="margin-top:12px"></div>
+        <div class="tw" style="margin-top:14px"><table id="i_tab"></table></div>
+        <div id="i_note" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Recorrido del IVA en la cadena</h3>
+    <div class="tw"><svg class="flow" id="i_flow" viewBox="0 0 900 190" role="img" aria-label="Flujo del IVA entre proveedor, empresa, cliente y SRI"></svg></div>
+  </div>
+
+  <div class="panel">
+    <h2>Grupo económico: hasta 6 facturaciones entre empresas relacionadas</h2>
+    <p class="lead" style="margin:6px 0 12px">Registre cada facturación anual entre empresas del grupo (Art. 4.1 LRTI define partes relacionadas por capital, dirección o administración común). Use los mismos nombres de empresa para que el programa arme la posición de IVA de cada una.</p>
+    <div class="tw"><table class="sas">
+      <thead><tr><th></th><th>#</th><th>Emite la factura</th><th>Recibe la factura</th><th>Base anual</th><th>Tipo</th><th>Margen del emisor %</th><th>% ventas gravadas del receptor</th><th>Receptor retiene IVA</th></tr></thead>
+      <tbody><tr><td><input type="checkbox" id="g_on_0" checked aria-label="Incluir facturación 1"></td>
+<td class="n" style="font-family:var(--f-mono)">1</td>
+<td><input type="text" class="txt" id="g_em_0" value="Comercial S.A."></td>
+<td><input type="text" class="txt" id="g_re_0" value="Distribuidora Norte SAS"></td>
+<td><input type="number" id="g_p_0" value="300000" min="0" step="1000"></td>
+<td><select id="g_tp_0"><option value="0.70">Servicios</option><option value="0.30" selected>Bienes</option><option value="1">Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_0" value="10" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_0" value="100" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_0"><option value="1" selected>Sí</option><option value="0">No</option></select></td></tr><tr><td><input type="checkbox" id="g_on_1" checked aria-label="Incluir facturación 2"></td>
+<td class="n" style="font-family:var(--f-mono)">2</td>
+<td><input type="text" class="txt" id="g_em_1" value="Logística SAS"></td>
+<td><input type="text" class="txt" id="g_re_1" value="Comercial S.A."></td>
+<td><input type="number" id="g_p_1" value="120000" min="0" step="1000"></td>
+<td><select id="g_tp_1"><option value="0.70" selected>Servicios</option><option value="0.30">Bienes</option><option value="1">Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_1" value="15" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_1" value="100" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_1"><option value="1" selected>Sí</option><option value="0">No</option></select></td></tr><tr><td><input type="checkbox" id="g_on_2" checked aria-label="Incluir facturación 3"></td>
+<td class="n" style="font-family:var(--f-mono)">3</td>
+<td><input type="text" class="txt" id="g_em_2" value="Comercial S.A."></td>
+<td><input type="text" class="txt" id="g_re_2" value="Clínica del Grupo S.A."></td>
+<td><input type="number" id="g_p_2" value="60000" min="0" step="1000"></td>
+<td><select id="g_tp_2"><option value="0.70" selected>Servicios</option><option value="0.30">Bienes</option><option value="1">Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_2" value="12" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_2" value="30" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_2"><option value="1">Sí</option><option value="0" selected>No</option></select></td></tr><tr><td><input type="checkbox" id="g_on_3" aria-label="Incluir facturación 4"></td>
+<td class="n" style="font-family:var(--f-mono)">4</td>
+<td><input type="text" class="txt" id="g_em_3" value="Distribuidora Norte SAS"></td>
+<td><input type="text" class="txt" id="g_re_3" value="Comercial S.A."></td>
+<td><input type="number" id="g_p_3" value="0" min="0" step="1000"></td>
+<td><select id="g_tp_3"><option value="0.70">Servicios</option><option value="0.30" selected>Bienes</option><option value="1">Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_3" value="10" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_3" value="100" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_3"><option value="1" selected>Sí</option><option value="0">No</option></select></td></tr><tr><td><input type="checkbox" id="g_on_4" aria-label="Incluir facturación 5"></td>
+<td class="n" style="font-family:var(--f-mono)">5</td>
+<td><input type="text" class="txt" id="g_em_4" value="Inmobiliaria SAS"></td>
+<td><input type="text" class="txt" id="g_re_4" value="Comercial S.A."></td>
+<td><input type="number" id="g_p_4" value="0" min="0" step="1000"></td>
+<td><select id="g_tp_4"><option value="0.70" selected>Servicios</option><option value="0.30">Bienes</option><option value="1">Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_4" value="20" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_4" value="100" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_4"><option value="1" selected>Sí</option><option value="0">No</option></select></td></tr><tr><td><input type="checkbox" id="g_on_5" aria-label="Incluir facturación 6"></td>
+<td class="n" style="font-family:var(--f-mono)">6</td>
+<td><input type="text" class="txt" id="g_em_5" value="Comercial S.A."></td>
+<td><input type="text" class="txt" id="g_re_5" value="Logística SAS"></td>
+<td><input type="number" id="g_p_5" value="0" min="0" step="1000"></td>
+<td><select id="g_tp_5"><option value="0.70">Servicios</option><option value="0.30">Bienes</option><option value="1" selected>Serv. profesionales</option></select></td>
+<td><input type="number" id="g_m_5" value="10" min="0" max="100" style="min-width:70px"></td>
+<td><input type="number" id="g_fb_5" value="100" min="0" max="100" style="min-width:70px"></td>
+<td><select id="g_ag_5"><option value="1" selected>Sí</option><option value="0">No</option></select></td></tr></tbody></table></div>
+    <p class="lead" style="font-size:12.5px;margin-top:8px">"% ventas gravadas del receptor": parte de sus ventas con tarifa 15% o exportación. Si vende todo con 15%, ponga 100; si es una clínica, colegio o vende canasta básica, será menor. Retención de IVA: 30% bienes, 70% servicios, 100% servicios profesionales.</p>
+  </div>
+  <div class="grid">
+    <div class="stack">
+      <div class="panel">
+        <h2>Efecto del IVA por facturación</h2>
+        <div class="kpis" id="g_kpis" style="margin-top:12px"></div>
+        <div class="tw" style="margin-top:14px"><table id="g_tab"></table></div>
+      </div>
+      <div class="panel">
+        <h2>Posición de IVA de cada empresa</h2>
+        <p class="lead" style="margin-bottom:8px">Solo por las operaciones dentro del grupo. Se suma a lo que cada empresa declara por sus operaciones con terceros.</p>
+        <div class="tw"><table id="g_emp"></table></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <h2>¿Es mejor no facturar a las relacionadas?</h2>
+        <div id="g_nofact"></div>
+      </div>
+      <div class="panel">
+        <h2>Lectura profesional</h2>
+        <ul class="recs" id="g_recs" style="margin-top:10px"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============ ÁREA 4 SAS ============ -->
+<section class="view" id="v-sas" hidden>
+<div class="stack">
+  <div class="panel">
+    <h2>Simulación SAS: repartir la utilidad facturando a empresas relacionadas</h2>
+    <p class="lead" style="margin-top:6px">La empresa principal contrata servicios a una o varias SAS del mismo grupo. Lo que paga es gasto para la principal e ingreso para cada SAS, así la utilidad se reparte. El programa separa de dónde saldría el ahorro y qué tan sostenible es cada parte ante el SRI y el Ministerio del Trabajo.</p>
+    <div class="howto" style="margin-top:12px">
+      <div><b>Impuesto a la renta</b><br>Toda sociedad en régimen general paga 25%, sea grande o pequeña. Dividir la utilidad entre varias SAS <b>no baja el IR</b> por sí solo.</div>
+      <div><b>15% de trabajadores</b><br>Una SAS sin empleados no reparte utilidades. Pero si las empresas están vinculadas, la ley permite unificar el reparto como una sola unidad económica.</div>
+      <div><b>RIMPE</b><br>Una SAS con ingresos hasta USD 300.000 paga 1% a 2% de sus ingresos, salvo que preste servicios profesionales o comisiones, que están excluidos.</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="stack">
+      <div class="panel">
+        <h3>Empresa principal</h3>
+        <div class="fields">
+          <label class="f">Utilidad antes de 15% e IR (sin SAS)<input type="number" id="s_u" value="400000" step="1000"></label>
+          <label class="f">Socios personas naturales de la principal<input type="number" id="s_n" value="2" min="1" step="1"></label>
+          <label class="f">Qué facturan las SAS a la principal
+            <select id="s_act"><option value="otro">Servicios operativos, logística, mantenimiento, arriendo de equipos, bienes</option><option value="prof">Servicios profesionales, consultoría, asesoría, comisiones o intermediación</option></select></label>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+        <label class="chk"><input type="checkbox" id="s_trp" checked> La empresa principal tiene trabajadores</label>
+        <label class="chk"><input type="checkbox" id="s_mov" checked> Los costos propios de las SAS ya los tenía la principal y se trasladan (personal, equipos o locales que pasan a la SAS). Desmarque si son costos nuevos.</label>
+      </div>
+      </div>
+      <div class="panel">
+        <h3>Empresas SAS relacionadas</h3>
+        <p class="lead" style="font-size:13px;margin-bottom:8px">Facturado: lo que la SAS cobra a la principal en el año (base, sin IVA). Costos propios: personal, local, equipos que la SAS necesita para prestar el servicio de verdad. Mantenimiento: contador, contribución a la Superintendencia, firma electrónica, trámites.</p>
+        <div class="note w" style="margin-bottom:10px;font-size:13px"><b>Ser SAS no da una tarifa especial.</b> Una SAS paga 25% en régimen general. Paga entre 1% y 2% de sus <b>ingresos brutos</b> solo si está en <b>RIMPE emprendedor</b>: ingresos anuales hasta USD 300.000, actividad no excluida (servicios profesionales, consultoría, comisiones) y estar registrada en ese régimen en el RUC. Elija el régimen de cada SAS en la columna "Régimen".</div><div class="tw"><table class="sas">
+          <thead><tr><th></th><th>SAS</th><th>Facturado a la principal</th><th>Costos propios</th><th>Mantener la SAS</th><th>Trabajadores</th><th>Socios PN</th><th>Relación con la principal</th><th>Régimen</th><th class="n">Utilidad</th></tr></thead>
+          <tbody><tr>
+ <td><input type="checkbox" id="s_on_0" checked aria-label="Incluir SAS 1"></td>
+ <td><input type="text" id="s_nm_0" value="Logística SAS" class="txt"></td>
+ <td><input type="number" id="s_t_0" value="150000" min="0" step="1000"></td>
+ <td><input type="number" id="s_c_0" value="40000" min="0" step="1000"></td>
+ <td><input type="number" id="s_k_0" value="4000" min="0" step="500"></td>
+ <td><select id="s_tr_0"><option value="0">No</option><option value="1">Sí</option></select></td>
+ <td><input type="number" id="s_sn_0" value="2" min="1" step="1" style="min-width:64px"></td>
+ <td><select id="s_rel_0"><option value="rel">Mismos dueños, familia o administración común</option><option value="ind" >Dueños distintos e independientes</option></select></td>
+ <td><select id="s_rg_0"><option value="g">General 25%</option><option value="r" >RIMPE</option></select></td>
+ <td class="n" id="s_out_0"></td></tr><tr>
+ <td><input type="checkbox" id="s_on_1" checked aria-label="Incluir SAS 2"></td>
+ <td><input type="text" id="s_nm_1" value="Mantenimiento SAS" class="txt"></td>
+ <td><input type="number" id="s_t_1" value="120000" min="0" step="1000"></td>
+ <td><input type="number" id="s_c_1" value="30000" min="0" step="1000"></td>
+ <td><input type="number" id="s_k_1" value="4000" min="0" step="500"></td>
+ <td><select id="s_tr_1"><option value="0">No</option><option value="1">Sí</option></select></td>
+ <td><input type="number" id="s_sn_1" value="1" min="1" step="1" style="min-width:64px"></td>
+ <td><select id="s_rel_1"><option value="rel">Mismos dueños, familia o administración común</option><option value="ind" selected>Dueños distintos e independientes</option></select></td>
+ <td><select id="s_rg_1"><option value="g">General 25%</option><option value="r" selected>RIMPE</option></select></td>
+ <td class="n" id="s_out_1"></td></tr><tr>
+ <td><input type="checkbox" id="s_on_2"  aria-label="Incluir SAS 3"></td>
+ <td><input type="text" id="s_nm_2" value="Servicios SAS" class="txt"></td>
+ <td><input type="number" id="s_t_2" value="80000" min="0" step="1000"></td>
+ <td><input type="number" id="s_c_2" value="20000" min="0" step="1000"></td>
+ <td><input type="number" id="s_k_2" value="4000" min="0" step="500"></td>
+ <td><select id="s_tr_2"><option value="0">No</option><option value="1">Sí</option></select></td>
+ <td><input type="number" id="s_sn_2" value="2" min="1" step="1" style="min-width:64px"></td>
+ <td><select id="s_rel_2"><option value="rel">Mismos dueños, familia o administración común</option><option value="ind" >Dueños distintos e independientes</option></select></td>
+ <td><select id="s_rg_2"><option value="g">General 25%</option><option value="r" >RIMPE</option></select></td>
+ <td class="n" id="s_out_2"></td></tr><tr>
+ <td><input type="checkbox" id="s_on_3"  aria-label="Incluir SAS 4"></td>
+ <td><input type="text" id="s_nm_3" value="Holding SAS" class="txt"></td>
+ <td><input type="number" id="s_t_3" value="0" min="0" step="1000"></td>
+ <td><input type="number" id="s_c_3" value="0" min="0" step="1000"></td>
+ <td><input type="number" id="s_k_3" value="4000" min="0" step="500"></td>
+ <td><select id="s_tr_3"><option value="0">No</option><option value="1">Sí</option></select></td>
+ <td><input type="number" id="s_sn_3" value="2" min="1" step="1" style="min-width:64px"></td>
+ <td><select id="s_rel_3"><option value="rel">Mismos dueños, familia o administración común</option><option value="ind" >Dueños distintos e independientes</option></select></td>
+ <td><select id="s_rg_3"><option value="g">General 25%</option><option value="r" >RIMPE</option></select></td>
+ <td class="n" id="s_out_3"></td></tr></tbody></table></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <h2>Resultado</h2>
+        <div class="kpis" id="s_kpis" style="margin-top:12px"></div>
+      </div>
+      <div class="panel">
+        <h2>Tres escenarios</h2>
+        <div class="bars" id="s_bars" style="margin-top:14px"></div>
+        <div class="legend"><span><i class="seg-pt"></i>15% trabajadores</span><span><i class="seg-ir"></i>Impuesto a la renta</span><span><i class="seg-dv"></i>IR dividendos</span><span><i class="seg-ss"></i>Costos de las SAS y recargos</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Impuesto que paga cada empresa</h2>
+    <p class="lead" style="margin-top:4px">Cada empresa liquida su propio 15% e impuesto a la renta. Cada SAS reparte dividendos a sus propios socios.</p>
+    <div class="tw" style="margin-top:10px"><table id="s_emp"></table></div>
+    <div class="kpis" id="s_emp_k" style="margin-top:14px"></div>
+    <div id="s_emp_note" style="margin-top:12px"></div>
+  </div>
+  <div class="panel">
+    <h2>Ahorro de la principal frente al impuesto de cada SAS</h2>
+    <p class="lead" style="margin-top:4px">Por cada dólar que la principal paga a una SAS deja de pagar 15% e IR sobre ese dólar. Esta tabla compara ese ahorro con lo que la SAS paga por recibirlo.</p>
+    <div class="tw" style="margin-top:10px"><table id="s_par"></table></div>
+  </div>
+  <div class="panel">
+    <h2>¿De dónde sale el ahorro y qué tan seguro es?</h2>
+    <div class="tw" style="margin-top:10px"><table id="s_src"></table></div>
+  </div>
+  <div class="grid">
+    <div class="panel">
+      <h2>Lectura profesional</h2>
+      <ul class="recs" id="s_recs" style="margin-top:10px"></ul>
+    </div>
+    <div class="panel">
+      <h2>Requisitos para que una SAS relacionada se sostenga</h2>
+      <ul class="recs" style="margin-top:10px">
+        <li><b>Sustancia real:</b> personal, local o equipos propios con los que presta el servicio. Una SAS que solo emite facturas puede ser recalificada por su sustancia económica (Art. 17 Código Tributario).</li>
+        <li><b>Contrato y entregables:</b> contrato escrito, órdenes de trabajo, informes o actas que prueben que el servicio se prestó.</li>
+        <li><b>Precio de mercado:</b> lo que cobra la SAS debe ser lo que cobraría un tercero. Guarde cotizaciones de terceros como respaldo.</li>
+        <li><b>Pagos bancarizados</b> y facturas electrónicas con IVA cuando corresponda.</li>
+        <li><b>Propósito de negocio:</b> separar riesgos, una línea de negocio distinta, atraer socios, ordenar patrimonio. El ahorro tributario no puede ser la única razón.</li>
+        <li><b>Reporte de partes relacionadas:</b> revelarlo en estados financieros y, sobre USD 3.000.000 de operaciones con relacionadas, presentar el anexo al SRI.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel" style="border:2px solid var(--accent)">
+    <h2>Resumen</h2>
+    <div id="s_res" style="margin-top:10px"></div>
+  </div>
+</div>
+</section>
+
+
+<!-- ============ ÁREA 5 PROVISIONES ============ -->
+<section class="view" id="v-provisiones" hidden>
+<div class="stack">
+  <div class="panel">
+    <h2>Provisiones: cuáles se deducen y cuándo</h2>
+    <p class="lead" style="margin-top:6px">Una provisión es un gasto que se registra hoy por una obligación o pérdida probable que se pagará o concretará después. Toda provisión bien registrada baja la utilidad contable y, con ella, el 15% de trabajadores. Para el impuesto a la renta hay cuatro tratamientos:</p>
+    <div class="howto" style="margin-top:12px">
+      <div><span class="pill ok">Deducible</span><br>Se resta del impuesto el mismo año en que se registra.</div>
+      <div><span class="pill w">Con límite</span><br>Se resta hasta el tope que fija la ley; el exceso se trata como diferido o no deducible.</div>
+      <div><span class="pill" style="background:var(--accent-soft);color:var(--accent)">Diferida</span><br>No se resta este año, pero sí cuando se paga o se concreta la pérdida. Se registra un activo por impuesto diferido.</div>
+      <div><span class="pill no">No deducible</span><br>Nunca se resta para el impuesto a la renta.</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="stack">
+      <div class="panel">
+        <h2>Calculadora de provisiones del año</h2>
+        <p class="lead" style="margin-bottom:10px">Ingrese lo que piensa registrar al 31 de diciembre. Los valores de ejemplo son ilustrativos.</p>
+        <h3>Cuentas incobrables</h3>
+        <div class="fields">
+          <label class="f">Créditos comerciales del año pendientes al cierre<input type="number" id="p_inc_cr" value="300000" min="0" step="1000"></label>
+          <label class="f">Cartera comercial total al cierre<input type="number" id="p_inc_cart" value="420000" min="0" step="1000"></label>
+          <label class="f">Provisión acumulada de años anteriores<input type="number" id="p_inc_acum" value="25000" min="0" step="500"></label>
+          <label class="f">Provisión que va a registrar este año<input type="number" id="p_inc_reg" value="6000" min="0" step="500"></label>
+        </div>
+        <div id="p_inc_out" class="note" style="margin-top:10px"></div>
+        <h3 style="margin-top:18px">Otras provisiones</h3>
+        <div class="tw"><table id="p_calc"></table></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <h2>Efecto en 15% e impuesto a la renta</h2>
+        <div class="kpis" id="p_kpis" style="margin-top:12px"></div>
+        <div class="bars" id="p_bars" style="margin-top:16px"></div>
+        <div class="legend"><span><i style="background:var(--good)"></i>Deducible este año</span><span><i style="background:var(--accent)"></i>Diferida</span><span><i style="background:var(--bad)"></i>No deducible</span></div>
+      </div>
+      <div class="panel">
+        <h2>Lectura profesional</h2>
+        <ul class="recs" id="p_recs" style="margin-top:10px"></ul>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Catálogo de provisiones</h2>
+    <p class="lead" style="margin-bottom:10px">Tratamiento tributario vigente a noviembre de 2026, con su base legal y las condiciones para sostenerlo ante el SRI.</p>
+    <div class="tw"><table id="p_cat"></table></div>
+  </div>
+</div>
+</section>
+
+<!-- ============ BASE LEGAL ============ -->
+<section class="view" id="v-base-legal" hidden>
+<div class="stack">
+  <div class="panel">
+    <h2>Planificación lícita frente a evasión</h2>
+    <p class="lead" style="margin-top:6px">Toda palanca de este programa elige entre opciones que la ley ofrece. Ninguna reduce impuestos ocultando ingresos, inventando gastos ni separando una operación real en piezas artificiales. El SRI califica los hechos por su sustancia económica (Art. 17 Código Tributario) y puede desconocer estructuras sin propósito de negocio.</p>
+    <div class="two" style="margin-top:14px">
+      <div class="note"><b>Lícito:</b> adelantar gastos necesarios y devengados, registrar las provisiones que la norma permite, comprar activos productivos que la empresa necesita, contratar personal que da deducción adicional, reinvertir si califica, elegir el régimen que la ley permite, facturar a valor de mercado entre relacionadas.</div>
+      <div class="note b"><b>Contingente o ilícito:</b> gastos sin comprobante válido o sin bancarizar sobre USD 1.000, facturas de empresas fantasma, fraccionar un negocio para quedarse en RIMPE, no facturar operaciones reales entre relacionadas, precios fuera de plena competencia, préstamos a socios sin retener (se tratan como dividendo anticipado).</div>
+    </div>
+  </div>
+  <div class="legal-list">
+    <div class="item"><div class="ref">Código del Trabajo, Arts. 97–104</div><p>Participación del 15% sobre la utilidad líquida contable: 10% partes iguales, 5% por cargas familiares. Se calcula antes del IR y no se reduce con deducciones adicionales tributarias.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 10</div><p>Gastos deducibles: necesarios para generar ingresos gravados, sustentados en comprobantes válidos. Incluye remuneraciones aportadas al IESS, incobrables 1% anual hasta 10% de cartera (num. 11) y las deducciones adicionales. El num. 13 (jubilación y desahucio) fue derogado: esas provisiones se deducen al pagarse. Detalle completo en la pestaña Provisiones.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 10 – deducciones adicionales</div><p>Seguros médicos y medicina prepagada a trabajadores (100% micro y pequeñas, 50% medianas y grandes); 150% por remuneraciones a personas con discapacidad sobre el mínimo; 50% por sueldos de jóvenes 18–29 años y obligados a pensión alimenticia (Ley de Eficiencia Económica, dic-2023); 150% por patrocinio deportivo y cultural, con límites y sin beneficiarios relacionados.</p></div>
+    <div class="item"><div class="ref">RLRTI Art. 28 num. 6</div><p>Depreciación deducible máxima: inmuebles 5%, instalaciones, maquinaria y muebles 10%, vehículos 20%, equipo de cómputo 33% anual. La depreciación de activos revaluados no es deducible.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 11</div><p>Pérdidas tributarias: se amortizan en los cinco ejercicios siguientes, hasta el 25% de la utilidad gravable de cada año.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 37</div><p>Tarifa general del 25%. Reducción de 10 puntos sobre el monto reinvertido solo para exportadores habituales, productores de bienes con 50% o más de componente nacional y turismo receptivo; exige aumento de capital inscrito hasta el 31 de diciembre del año siguiente y destino a activos productivos. Rebaja de 3 puntos para micro, pequeñas y exportadores habituales: verificar requisitos vigentes.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 39.2 (L.O. Transparencia Social)</div><p>Dividendos: IR único del 12% al beneficiario residente; 14% con paraíso fiscal en la cadena o sin reporte de composición societaria; 10% a no residentes. Franja exenta de tres SBU (USD 1.446 en 2026) por persona natural y por sociedad. Préstamos y donaciones a socios: retención del 25% como dividendo anticipado. Entre sociedades residentes no hay retención.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 39.2.1 · Res. NAC-DGERCGC26-00000026</div><p>Pago a cuenta sobre utilidades acumuladas no distribuidas al 31 de julio: 0% hasta USD 100.000; 0,75%, 1,25%, 1,75%, 2,25% y 2,50% en tramos superiores, sobre el 100% del saldo. Compensable o devolvible al distribuir o capitalizar dentro de dos ejercicios; si no, se vuelve gasto no deducible.</p></div>
+    <div class="item"><div class="ref">LRTI Arts. 97.1 a 97.6 (RIMPE)</div><p>Ingresos brutos hasta USD 300.000. Negocios populares (hasta USD 20.000, solo personas naturales) con cuota fija; emprendedores con tabla de 1% a 2% sobre ingresos brutos, sin deducciones ni rebajas. Excluye servicios profesionales, ocupaciones liberales, relación de dependencia y otras actividades listadas.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 36 · Res. NAC-DGERCGC25-00000043</div><p>Tabla 2026 de personas naturales: fracción básica exenta USD 12.208; tarifas marginales de 5% a 37% a partir de USD 109.956.</p></div>
+    <div class="item"><div class="ref">LRTI Arts. 52–72</div><p>IVA 15% (vigente desde abril 2024, ratificado para 2026). Crédito tributario pleno si todas las ventas son gravadas o exportaciones; proporcional si hay ventas 0%; utilizable hasta cinco años. Exportadores pueden pedir devolución. Desde 1-jun-2026 la declaración de IVA solo se tiene por presentada con el pago total.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 4.1 y régimen de precios de transferencia</div><p>Operaciones con partes relacionadas a valor de plena competencia. Anexo de operaciones sobre USD 3.000.000 e informe integral sobre USD 10.000.000 acumulados en el año (Res. NAC-DGERCGC23-00000025). El SRI puede ajustar precios y aplicar multas por no presentación.</p></div>
+    <div class="item"><div class="ref">LRTI Art. 103 · Reglamento de Comprobantes</div><p>Pagos superiores a USD 1.000 deben bancarizarse para que el gasto sea deducible y el IVA sea crédito. Toda transferencia de bienes o prestación de servicios exige comprobante de venta, también entre relacionadas.</p></div>
+    <div class="item"><div class="ref">Código del Trabajo Art. 103 · Ministerio del Trabajo</div><p>Las empresas vinculadas pueden ser consideradas una sola unidad económica para el pago de utilidades: el 15% se calcula y reparte de forma conjunta entre los trabajadores del grupo. Trasladar utilidad a una empresa sin trabajadores no elimina ese derecho.</p></div>
+    <div class="item"><div class="ref">Ley Orgánica de Emprendimiento e Innovación (2020)</div><p>Crea la Sociedad por Acciones Simplificada (SAS): constitución electrónica, puede ser de un solo accionista, sin reserva legal obligatoria. Tributariamente es una sociedad más: 25% de IR o RIMPE si califica.</p></div>
+    <div class="item"><div class="ref">Res. NAC-DGERCGC24-00000027 (RIMPE)</div><p>Excluye del RIMPE, entre otros, servicios profesionales, actividades de comisión o intermediación y rentas de capital, también cuando las presta una sociedad.</p></div>
+    <div class="item"><div class="ref">RLRTI Art. 28 · artículo innumerado de impuestos diferidos</div><p>Lista los casos en que una diferencia entre el gasto contable y el tributario da lugar a impuesto diferido: deterioro de inventarios y de activos fijos, desmantelamiento, contratos de construcción, activos biológicos, exceso de deterioro de cartera y provisiones distintas a incobrables, que se deducen cuando se paga la obligación.</p></div>
+    <div class="item"><div class="ref">Circular NAC-DGECCGC23-00000006 (jul-2023)</div><p>Las provisiones de jubilación patronal y desahucio son no deducibles en el año de registro, generan impuesto diferido y se deducen cuando se pagan. Su reverso se grava en la misma proporción en que fueron deducibles.</p></div>
+    <div class="item"><div class="ref">Código Tributario Arts. 17 y 90</div><p>Calificación del hecho generador por su sustancia económica. En determinaciones del SRI se añade un recargo del 20% sobre el impuesto determinado, más intereses.</p></div>
+  </div>
+</div>
+</section>
+
+<footer>
+Herramienta de simulación con fines de planificación. Usa la normativa publicada hasta noviembre de 2026; las cifras y requisitos deben validarse con su contador o asesor tributario antes de aplicar cualquier decisión, y cada palanca requiere el sustento documental indicado. No incluye regímenes sectoriales especiales (minería, hidrocarburos, ZEDE, contratos de inversión).
+</footer>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)?v:0};
+const money=new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD',maximumFractionDigits:0});
+const f=n=>money.format(Math.round(n||0));
+const pct=n=>(isFinite(n)?(n*100).toFixed(1):'0.0')+'%';
+const SBU=482, EXENTO_DIV=3*SBU;
+
+/* ---------- Tablas 2026 ---------- */
+const TPN=[[0,0,0],[12208,0,.05],[15549,167,.10],[20188,631,.12],[26700,1412,.15],[35136,2678,.20],[46575,4965,.25],[62005,8823,.30],[82679,15025,.35],[109956,24572,.37]];
+function irPN(b){if(b<=0)return 0;let r=TPN[0];for(const t of TPN){if(b>t[0])r=t}return r[1]+(b-r[0])*r[2]}
+function rimpeEmp(y){if(y<=0)return 0;if(y<=20000)return 60;const T=[[20000,60,.01],[50000,360,.0125],[75000,672.5,.015],[100000,1047.5,.0175],[200000,2797.52,.02]];let r=T[0];for(const t of T){if(y>t[0])r=t}return r[1]+(y-r[0])*r[2]}
+function rimpePop(y){if(y<=2500)return 0;if(y<=5000)return 5;if(y<=10000)return 15;if(y<=15000)return 35;return 60}
+function pagoCuenta(s){const T=[[100000,0],[1000000,.0075],[10000000,.0125],[100000000,.0175],[500000000,.0225],[Infinity,.025]];for(const t of T){if(s<=t[0])return {tasa:t[1],valor:s*t[1]}}}
+function divTax(D,n,rate){if(D<=0)return 0;const per=D/n;return n*Math.max(0,per-EXENTO_DIV)*rate}
+
+/* ---------- Palancas ---------- */
+const LEVERS=[
+ {id:'gr',para:`Si la empresa igual va a necesitar un gasto (bonos al personal, mantenimiento, capacitación, insumos), hacerlo y recibir la factura antes del 31 de diciembre baja la utilidad de este año y con ella el 15% y el impuesto.`,ej:`Un mantenimiento de USD 10.000 hecho en diciembre en vez de enero reduce unos USD 3.600 entre 15% e IR este año. El dinero sale de todas formas: solo conviene si el gasto es necesario.`,g:1,k:'c',t:'A · Gastos reales necesarios adelantados al ejercicio',leg:'<b>Art. 10 num. 1 y 9 LRTI</b> Bonificaciones al personal aportadas al IESS, mantenimiento, capacitación o insumos que la empresa necesita y devenga antes del 31-dic. Requiere comprobante electrónico válido y bancarización sobre USD 1.000.',inputs:[['Monto del gasto',15000]]},
+ {id:'jp',para:`La empresa deberá pagar jubilación y desahucio a sus trabajadores en el futuro. Un actuario calcula cuánto corresponde a este año y se registra como gasto. Baja la utilidad contable y por eso reduce el 15% de trabajadores, pero para el impuesto a la renta no se deduce este año: se deduce cuando efectivamente se paga (impuesto diferido).`,ej:`Una provisión de USD 8.000 reduce USD 1.200 de participación este año. Los USD 2.000 de IR se recuperan el año en que se pague la jubilación o el desahucio.`,g:1,k:'c',t:'B · Provisión de jubilación patronal y desahucio',leg:'<b>Circular NAC-DGECCGC23-00000006 · RLRTI Art. 28 (impuestos diferidos)</b> Desde 2021 el numeral 13 del Art. 10 LRTI fue derogado: la provisión no es deducible cuando se registra; genera activo por impuesto diferido y se deduce al pagar. Requiere estudio actuarial.',inputs:[['Provisión del año según estudio',8000]],diferido:true},
+ {id:'ci',para:`Reconoce que parte de lo que le deben los clientes quizá no se cobre. La ley deja restar el 1% de lo vendido a crédito en el año que sigue pendiente al cierre. No sale dinero.`,ej:`Si al 31 de diciembre le deben USD 300.000 de ventas del año, puede restar USD 3.000.`,g:1,k:'c',t:'C · Provisión de cuentas incobrables',leg:'<b>Art. 10 num. 11 LRTI</b> 1% anual sobre créditos comerciales concedidos en el ejercicio y pendientes al cierre, sin superar el 10% de la cartera total. No aplica a créditos con relacionadas.',inputs:[['Créditos comerciales del año por cobrar',300000]],calc:v=>v[0]*.01},
+ {id:'dep',para:`Si la empresa necesita una máquina, un vehículo o computadoras, comprarlos antes permite restar este año una parte de su valor (la depreciación). El bien sigue siendo de la empresa.`,ej:`Una máquina de USD 60.000 comprada en julio resta USD 3.000 este año (10% anual × 6 meses). Comprada en diciembre, solo USD 500.`,g:1,k:'c',t:'D · Compra de activos productivos necesarios',leg:'<b>Art. 28 num. 6 RLRTI</b> Deduce la depreciación del año: 5% inmuebles, 10% maquinaria y muebles, 20% vehículos, 33% equipo de cómputo, prorrateada por meses de uso. El activo queda en la empresa.',inputs:[['Valor del activo',60000],['Meses de uso en el año',6]],sel:[['Tipo',[['0.10','Maquinaria, instalaciones, muebles (10%)'],['0.20','Vehículos y equipo de transporte (20%)'],['0.3333','Equipo de cómputo y software (33%)'],['0.05','Inmuebles (5%)']]]],calc:(v,s)=>v[0]*parseFloat(s[0])*Math.min(12,Math.max(0,v[1]))/12},
+ {id:'sm',para:`Si la empresa paga seguro médico o medicina prepagada a sus trabajadores, resta ese gasto y además un valor extra: el 100% si es micro o pequeña, el 50% si es mediana o grande.`,ej:`Un seguro de USD 12.000 en una empresa pequeña permite restar USD 24.000. Mejora el beneficio del personal y baja el impuesto.`,g:2,k:'a',t:'E · Seguro médico o medicina prepagada para trabajadores',leg:'<b>Art. 10 LRTI (deducción adicional)</b> 100% adicional para micro y pequeñas, 50% para medianas y grandes. Contratado con empresas domiciliadas y a favor de la totalidad de trabajadores según reglamento.',inputs:[['Costo anual del seguro',12000]],extra:(v,tam)=>v[0]*(tam==='mp'?1:.5),gasto:v=>v[0]},
+ {id:'jv',para:`Al contratar jóvenes de 18 a 29 años, o personas que pagan pensión alimenticia, la empresa resta sus sueldos y además un 50% extra.`,ej:`USD 20.000 en sueldos de esas contrataciones permiten restar USD 30.000.`,g:2,k:'a',t:'F · Sueldos de jóvenes 18–29 años u obligados a pensión alimenticia',leg:'<b>Ley Orgánica de Eficiencia Económica (dic-2023), Art. 10 LRTI</b> 50% adicional sobre sueldos y salarios por contratación nueva, con aportes al IESS. Verificar condiciones de empleo neto.',inputs:[['Sueldos anuales de esas contrataciones',20000]],extra:v=>v[0]*.5,gasto:v=>v[0]},
+ {id:'dc',para:`Por cada trabajador con discapacidad por encima del mínimo que exige la ley (4% de la nómina desde 25 trabajadores), la empresa resta su sueldo y además un 150% extra.`,ej:`USD 10.000 en remuneraciones sobre el mínimo permiten restar USD 25.000.`,g:2,k:'a',t:'G · Remuneraciones a personas con discapacidad',leg:'<b>Art. 10 num. 9 LRTI</b> 150% adicional sobre remuneraciones y beneficios sociales de trabajadores con discapacidad o sustitutos, por encima del porcentaje mínimo obligatorio de inclusión.',inputs:[['Remuneraciones que exceden el mínimo legal',0]],extra:v=>v[0]*1.5,gasto:v=>v[0]},
+ {id:'pt',para:`Auspiciar a deportistas, eventos culturales o programas sociales avalados permite restar el aporte y además un 150% extra. No vale si el beneficiario es una empresa o persona relacionada.`,ej:`Un patrocinio de USD 5.000 permite restar USD 12.500.`,g:2,k:'a',t:'H · Patrocinio deportivo, cultural o de programas sociales',leg:'<b>Art. 10 LRTI y Reglamento</b> 150% adicional en patrocinio a deportistas y programas avalados por el ente rector; sujeto a límites y no aplica si el beneficiario es parte relacionada.',inputs:[['Monto del patrocinio',0]],extra:v=>v[0]*1.5,gasto:v=>v[0]},
+ {id:'pe',para:`Si la empresa declaró pérdida en alguno de los últimos cinco años, puede usar esa pérdida para bajar la ganancia de este año, hasta una cuarta parte de ella.`,ej:`Con ganancia gravable de USD 100.000 y pérdidas pendientes de USD 60.000, resta USD 25.000 este año y el resto en los siguientes.`,g:3,k:'a',t:'I · Amortización de pérdidas tributarias',leg:'<b>Art. 11 LRTI</b> Pérdidas declaradas en los últimos cinco ejercicios, hasta el 25% de la utilidad gravable del año.',inputs:[['Saldo de pérdidas por amortizar',0]]},
+ {id:'re',para:`Si la empresa exporta, fabrica con 50% o más de insumos nacionales o hace turismo receptivo, y usa parte de la ganancia para comprar maquinaria y aumentar su capital, esa parte paga 15% en lugar de 25%.`,ej:`Reinvertir USD 40.000 ahorra USD 4.000 de impuesto, y el dinero se queda en la empresa como activo productivo.`,g:4,k:'r',t:'J · Reinversión de utilidades (−10 puntos)',leg:'<b>Art. 37 LRTI</b> Solo para exportadores habituales, manufactura con 50% o más de componente nacional y turismo receptivo. Aumento de capital inscrito hasta el 31-dic del año siguiente y compra de maquinaria o activos productivos.',inputs:[['Monto a reinvertir',40000]]},
+ {id:'mp',para:`Baja la tarifa de 25% a 22% para micro y pequeñas empresas o exportadores habituales que mantienen o aumentan su número de empleados.`,ej:`Con una base de USD 100.000, pagaría USD 22.000 en vez de USD 25.000.`,g:4,k:'r',t:'K · Rebaja de 3 puntos (micro, pequeña o exportador habitual)',leg:'<b>Art. 37 LRTI</b> Condicionada a mantener o incrementar el empleo. Verifique en el texto codificado vigente los requisitos aplicables a su caso antes de usarla.',inputs:[]}
+];
+const DEF_ON={gr:true,jp:true,ci:true,dep:true,sm:true,jv:false,dc:false,pt:false,pe:false,re:false,mp:false};
+function renderLevers(){
+  const box=$('levers');let h='';
+  for(const L of LEVERS){
+    const tagTxt={c:'contable',a:'adicional',r:'tarifa'}[L.k];
+    h+=`<div class="lever" id="lv_${L.id}"><input type="checkbox" id="on_${L.id}" ${DEF_ON[L.id]?'checked':''} aria-label="Activar ${L.t}"><div class="body"><div><span class="t">${L.t}</span><span class="tag ${L.k}">${tagTxt}</span></div><div class="plain"><p><b>Para qué sirve:</b> ${L.para}</p><p class="ej"><b>Ejemplo:</b> ${L.ej}</p></div><details class="legal"><summary>Base legal y requisitos</summary><div>${L.leg}</div></details>`;
+    if(L.inputs.length||L.sel){h+='<div class="row">';
+      L.inputs.forEach((p,i)=>{h+=`<label class="f">${p[0]}<input type="number" id="in_${L.id}_${i}" value="${p[1]}" min="0" step="100"></label>`});
+      (L.sel||[]).forEach((s,i)=>{h+=`<label class="f">${s[0]}<select id="sel_${L.id}_${i}">${s[1].map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></label>`});
+      h+='</div>'}
+    h+=`<div class="legal" id="out_${L.id}"></div></div></div>`;
+  }
+  box.innerHTML=h;
+}
+function lv(L){return {on:$('on_'+L.id).checked,v:L.inputs.map((_,i)=>num(`in_${L.id}_${i}`)),s:(L.sel||[]).map((_,i)=>$(`sel_${L.id}_${i}`).value)}}
+
+/* ---------- Motor área 1 ---------- */
+function calcUtil(maxGroup){
+  const tipo=$('u_tipo').value, tam=$('u_tam').value, ya=$('u_ya').checked;
+  let UC=num('u_uc'); const ND=num('u_nd'), EX=num('u_ex'), ING=num('u_ing');
+  let contable=0, extra=0, gastoNuevo=0, perdidas=0, reinv=0, rebaja3=false, difer=0;
+  const det={};
+  for(const L of LEVERS){
+    const st=lv(L); if(!st.on||L.g>maxGroup) continue;
+    if(L.k==='c'){const val=L.calc?L.calc(st.v,st.s):st.v[0];contable+=val;det[L.id]=val;if(L.diferido)difer+=val;if(L.id==='gr'||L.id==='jp')gastoNuevo+=val}
+    else if(L.id==='pe'){perdidas=st.v[0]}
+    else if(L.id==='re'){reinv=st.v[0]}
+    else if(L.id==='mp'){rebaja3=true}
+    else {const g=L.gasto(st.v);const e=L.extra(st.v,tam);extra+=e;det[L.id]=e;if(!ya){contable+=g;gastoNuevo+=g}}
+  }
+  const UCa=UC-contable;
+  const PT=Math.max(0,UCa*.15);
+  let IR=0, BI=0, amort=0, reinvUsada=0, reinvMax=0, reinvMotivo='', tasa=.25, rimpe=false;
+  const RL=parseFloat($('u_rl').value)||0;
+  const preBase=UCa-PT+ND+difer-EX;
+  if(tipo==='rimpe'){
+    rimpe=true; IR=rimpeEmp(ING); BI=ING; extra=0;
+  }else{
+    let base=preBase-extra;
+    if(perdidas>0&&base>0){amort=Math.min(perdidas,base*.25);base-=amort}
+    BI=Math.max(0,base);
+    if(rebaja3) tasa-=.03;
+    const califica=(tipo==='calif');
+    if(reinv>0&&!califica) reinvMotivo='Su tipo de sociedad no accede a la reinversión. Cámbielo en "Régimen / tipo de sociedad" si es exportador habitual, manufactura con ≥50% de componente nacional o turismo receptivo.';
+    if(califica&&BI>0){
+      const UE=UCa-PT, ir0=tasa, ir1=tasa-.10;
+      reinvMax=Math.max(0,((1-RL)*UE-(ir0-ir0*RL)*BI)/(1-(ir0-ir1)+(ir0-ir1)*RL));
+      reinvMax=Math.min(reinvMax,BI);
+      if(reinv>0){reinvUsada=Math.min(reinv,reinvMax); if(reinv>reinvMax) reinvMotivo='Lo solicitado supera el máximo reinvertible; se aplicó el máximo.'}
+    }
+    IR=(BI-reinvUsada)*tasa+reinvUsada*(tasa-.10);
+  }
+  const UN=UCa-PT-IR;
+  const RES=Math.max(0,UN*RL);
+  const d=Math.min(100,Math.max(0,num('d_pct')))/100, n=Math.max(1,Math.round(num('d_soc'))), r=parseFloat($('d_tar').value);
+  const DISP=Math.max(0,UN-RES-reinvUsada);
+  const D=DISP*d;
+  const DV=divTax(D,n,r);
+  return {UC,UCa,contable,PT,ND:ND+difer,difer,EX,extra,amort,BI,tasa,reinvUsada,reinvMax,reinvMotivo,reinvSol:reinv,RL,RES,DISP,dpct:d,nSoc:n,rDiv:r,IR,UN,D,DV,total:PT+IR+DV,gastoNuevo,rimpe,det,preBase};
+}
+
+
+function formula(b,x){
+  const L=(t,fm,v,c)=>`<tr class="${c||''}"><td>${t}</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${fm}</td><td class="n">${v}</td></tr>`;
+  if(x.rimpe){return `<h3 style="margin-top:16px">Fórmula del resultado final</h3><div class="tw"><table><tbody>${L('15% trabajadores','utilidad × 15%',f(x.PT))}${L('IR RIMPE','tabla sobre ingresos brutos',f(x.IR))}${L('Carga total','15% + IR + dividendos',f(x.total),'sum')}</tbody></table></div>`}
+  const t=x.tasa, R=x.reinvUsada, UE=x.UCa-x.PT;
+  let h=`<h3 style="margin-top:16px">Fórmula del resultado final (escenario configurado)</h3><div class="tw"><table><tbody>`;
+  h+=L('1. Utilidad ajustada','utilidad contable − gastos y provisiones nuevos',`${f(x.UC)} − ${f(x.contable)} = <b>${f(x.UCa)}</b>`);
+  h+=L('2. 15% trabajadores','utilidad ajustada × 15%',`${f(x.UCa)} × 15% = <b>${f(x.PT)}</b>`);
+  h+=L('3. Base imponible','(1) − (2) + no deducibles − exentos − deducciones adicionales − pérdidas',`${f(x.UCa)} − ${f(x.PT)} + ${f(x.ND)} − ${f(x.EX)} − ${f(x.extra)} − ${f(x.amort)} = <b>${f(x.BI)}</b>`);
+  if($('u_tipo').value==='calif'){
+    h+=L('4. Utilidad efectiva (UE)','(1) − (2)',`${f(UE)}`);
+    h+=L('5. Máximo reinvertible','[(1 − %RL) × UE − (%IR0 − %IR0 × %RL) × BI] ÷ [1 − (%IR0 − %IR1) + (%IR0 − %IR1) × %RL]',`[(1 − ${pct(x.RL)}) × ${f(UE)} − (${pct(t)} − ${pct(t)} × ${pct(x.RL)}) × ${f(x.BI)}] ÷ [1 − 10% + 10% × ${pct(x.RL)}] = <b>${f(x.reinvMax)}</b>`);
+    h+=L('6. Reinversión aplicada (R)','el menor entre lo solicitado y el máximo',`<b>${f(R)}</b>`);
+  }
+  h+=L(($('u_tipo').value==='calif'?'7':'4')+'. Impuesto a la renta',R?`(BI − R) × ${pct(t)} + R × ${pct(t-.10)}`:`BI × ${pct(t)}`,R?`(${f(x.BI)} − ${f(R)}) × ${pct(t)} + ${f(R)} × ${pct(t-.10)} = <b>${f(x.IR)}</b>`:`${f(x.BI)} × ${pct(t)} = <b>${f(x.IR)}</b>`);
+  const n2=$('u_tipo').value==='calif'?8:5;
+  h+=L(`${n2}. Utilidad neta`,'(1) − (2) − IR',`${f(x.UCa)} − ${f(x.PT)} − ${f(x.IR)} = <b>${f(x.UN)}</b>`);
+  h+=L(`${n2+1}. Disponible para dividendos`,`utilidad neta − reserva legal (${pct(x.RL)}) − R`,`${f(x.UN)} − ${f(x.RES)} − ${f(R)} = <b>${f(x.DISP)}</b>`);
+  h+=L(`${n2+2}. Dividendos`,`disponible × ${pct(x.dpct)}`,`<b>${f(x.D)}</b>`);
+  h+=L(`${n2+3}. IR sobre dividendos`,`socios × máx(0, dividendo por socio − USD 1.446) × ${pct(x.rDiv)}`,`${x.nSoc} × máx(0, ${f(x.D/x.nSoc)} − 1.446) × ${pct(x.rDiv)} = <b>${f(x.DV)}</b>`);
+  h+=L(`${n2+4}. Carga total`,'15% + IR + IR dividendos',`${f(x.PT)} + ${f(x.IR)} + ${f(x.DV)} = <b>${f(x.total)}</b>`,'sum');
+  h+=L(`${n2+5}. Ahorro frente a la base`,'carga base − carga configurada',`${f(b.total)} − ${f(x.total)} = <b>${f(b.total-x.total)}</b>`,'sum');
+  h+=`</tbody></table></div><p class="lead" style="font-size:12.5px;margin-top:8px">%RL: reserva legal. %IR0: tarifa normal. %IR1: tarifa reducida (10 puntos menos). La reinversión exige destinar el valor a maquinaria o activos productivos e inscribir el aumento de capital hasta el 31 de diciembre del año siguiente.</p>`;
+  return h;
+}
+function renderUtil(){
+  // estados de palancas
+  const tipo=$('u_tipo').value;
+  for(const L of LEVERS){
+    const el=$('lv_'+L.id), st=lv(L);
+    el.classList.toggle('off',!st.on);
+    const out=$('out_'+L.id); out.textContent='';
+    if(tipo==='rimpe'&&(L.k!=='c')){out.innerHTML='<span class="pill no">no aplica</span>En RIMPE el impuesto se calcula sobre ingresos brutos, sin deducciones ni rebajas.';continue}
+    if(L.id==='re'&&tipo!=='calif'){out.innerHTML='<span class="pill no">no aplica</span>Su tipo de sociedad no accede a la reinversión. Cambie el tipo si es exportador habitual, manufactura con ≥50% de componente nacional o turismo receptivo.';continue}
+    if(L.id==='mp'){out.innerHTML='<span class="pill w">verificar</span>Úsela solo con confirmación de su asesor sobre su vigencia y condiciones de empleo.';}
+    if(L.id==='ci'&&st.on){out.innerHTML=`Provisión deducible estimada: <b>${f(st.v[0]*.01)}</b>`}
+    if(L.id==='dep'&&st.on){out.innerHTML=`Depreciación deducible del año: <b>${f(L.calc(st.v,st.s))}</b>`}
+    if(L.k==='a'&&L.extra&&st.on&&tipo!=='rimpe'){out.innerHTML=`Deducción adicional: <b>${f(L.extra(st.v,$('u_tam').value))}</b>`}
+  }
+  const base=calcUtil(0), sc=[calcUtil(0),calcUtil(1),calcUtil(2),calcUtil(3),calcUtil(4)];
+  const fin=sc[4];
+  const ahorro=base.total-fin.total;
+  $('u_kpis').innerHTML=`
+    <div class="kpi"><div class="l">Carga base (sin palancas)</div><div class="v">${f(base.total)}</div></div>
+    <div class="kpi"><div class="l">Carga con palancas</div><div class="v">${f(fin.total)}</div></div>
+    <div class="kpi hl"><div class="l">Ahorro en 15% + IR + dividendos</div><div class="v">${f(ahorro)}</div></div>
+    <div class="kpi"><div class="l">Desembolso de gastos nuevos</div><div class="v">${f(fin.gastoNuevo)}</div></div>
+    <div class="kpi"><div class="l">Tasa efectiva IR sobre utilidad</div><div class="v">${pct(fin.UCa>0?fin.IR/fin.UCa:0)}</div></div>
+    <div class="kpi"><div class="l">Utilidad neta después de 15% e IR</div><div class="v">${f(fin.UN)}</div></div>`;
+  const names=[['Escenario 0 · Base','sin palancas'],['Escenario 1','+ gastos y provisiones (A–D)'],['Escenario 2','+ deducciones adicionales (E–H)'],['Escenario 3','+ pérdidas (I)'],['Escenario 4 · Configurado','+ tarifa (J–K)']];
+  drawBars('u_bars',sc.map((s,i)=>({nm:names[i][0],sm:names[i][1],segs:[[s.PT,'seg-pt'],[s.IR,'seg-ir'],[s.DV,'seg-dv']],tot:s.total})));
+  // conciliación
+  const rows=[
+    ['Utilidad contable antes de 15% e IR',base.UC,fin.UC],
+    ['(−) Gastos y provisiones nuevos (palancas A–H)',0,-fin.contable],
+    ['= Utilidad ajustada',base.UCa,fin.UCa,'sum'],
+    ['(−) 15% participación trabajadores',-base.PT,-fin.PT],
+    ['(+) Gastos no deducibles (incluye provisiones diferidas)',base.ND,fin.ND],
+    ['(−) Ingresos exentos',-base.EX,-fin.EX],
+    ['(−) Deducciones adicionales',-base.extra,-fin.extra],
+    ['(−) Amortización de pérdidas',-base.amort,-fin.amort],
+    [fin.rimpe?'Base RIMPE (ingresos brutos)':'= Base imponible',base.BI,fin.BI,'sum'],
+    ...(fin.rimpe?[]:[
+    ['Reinversión solicitada (palanca J)',0,fin.reinvSol,'sub'],
+    ['Máximo reinvertible (Art. 51 RLRTI)',null,null,'sub','—',$('u_tipo').value==='calif'?f(fin.reinvMax):'no aplica'],
+    ['Reinversión aplicada, a la tarifa reducida',0,fin.reinvUsada],
+    ['Base a la tarifa normal (base imponible − reinversión)',base.BI,fin.BI-fin.reinvUsada],
+    ['IR sobre base normal',null,null,'',f(base.BI*base.tasa)+' <small>('+pct(base.tasa)+')</small>',f((fin.BI-fin.reinvUsada)*fin.tasa)+' <small>('+pct(fin.tasa)+')</small>'],
+    ['IR sobre monto reinvertido',null,null,'','—',f(fin.reinvUsada*(fin.tasa-.10))+' <small>('+pct(fin.tasa-.10)+')</small>']]),
+    ['Impuesto a la renta causado',base.IR,fin.IR,'sum'],
+    ['Utilidad neta del ejercicio',base.UN,fin.UN],
+    ['(−) Reserva legal ('+pct(fin.RL)+')',-base.RES,-fin.RES,'sub'],
+    ['(−) Utilidad reinvertida (se capitaliza, no se distribuye)',0,-fin.reinvUsada,'sub'],
+    ['= Utilidad disponible para dividendos',base.DISP,fin.DISP],
+    ['Dividendos distribuidos ('+pct(fin.dpct)+' de lo disponible)',base.D,fin.D,'sub'],
+    ['IR único sobre dividendos (neto de franja exenta)',base.DV,fin.DV],
+    ['Carga total: 15% + IR + dividendos',base.total,fin.total,'sum']
+  ];
+  const motivo=fin.reinvMotivo?`<div class="note w" style="margin-top:10px"><b>Reinversión:</b> ${fin.reinvMotivo}</div>`:'';
+  $('u_conc_note').innerHTML=motivo+formula(base,fin);
+  $('u_conc').innerHTML='<thead><tr><th>Concepto</th><th class="n">Base</th><th class="n">Configurado</th></tr></thead><tbody>'+rows.map(r=>`<tr class="${r[3]||''}"><td>${r[0]}</td><td class="n">${r[4]!==undefined?r[4]:f(r[1])}</td><td class="n">${r[5]!==undefined?r[5]:f(r[2])}</td></tr>`).join('')+'</tbody>';
+  // recomendaciones
+  const R=[];
+  const t=fin.tasa;
+  R.push(`<li><span class="pill ok">clave</span><b>Cada USD 1 de gasto real deducible ahorra ${f(100*(.15+.85*t))} por cada USD 100</b> (15% de participación más ${pct(t)} de IR sobre el 85% restante). Gastar solo para ahorrar impuestos empobrece a la empresa: el gasto debe ser necesario de todas formas. Adelantarlo al ejercicio es lo que genera el beneficio.</li>`);
+  if(!fin.rimpe) R.push(`<li><span class="pill ok">clave</span><b>Las deducciones adicionales no reducen el 15% de trabajadores</b>: actúan después de la participación, sobre la base del IR. Cada USD 100 de deducción adicional ahorra ${f(100*t)}.</li>`);
+  if(fin.det.dep) R.push(`<li><b>Activos:</b> la compra no es gasto; lo deducible es la depreciación del año (${f(fin.det.dep)}). Comprar en noviembre da solo uno o dos meses de depreciación; conviene planificar compras necesarias más temprano.</li>`);
+  if(tipo==='calif'&&fin.reinvUsada>0) R.push(`<li><b>Reinversión:</b> ${f(fin.reinvUsada)} tributan 10 puntos menos (ahorro ${f(fin.reinvUsada*.10)}). Si el aumento de capital no se inscribe hasta el 31-dic del año siguiente, el SRI reliquida con intereses.</li>`);
+  if(tipo==='general') R.push(`<li><span class="pill w">revisar</span>Su sociedad no accede a la reinversión. Si exporta de forma habitual o fabrica bienes con 50% o más de componente nacional, cambie el tipo para evaluarla.</li>`);
+  if(fin.rimpe) R.push(`<li><span class="pill w">RIMPE</span>Paga ${f(fin.IR)} sobre ingresos brutos sin importar los gastos. Compare en el área 2 si el régimen general le convendría con su margen real; con márgenes bajos el RIMPE puede ser más caro.</li>`);
+  if(num('u_ing')>300000&&$('u_tipo').value==='rimpe') R.push(`<li><span class="pill no">error</span>Con ingresos sobre USD 300.000 no puede estar en RIMPE.</li>`);
+  const n=Math.max(1,Math.round(num('d_soc')));
+  R.push(`<li><b>Dividendos:</b> cada socio persona natural tiene USD ${EXENTO_DIV.toLocaleString('es-EC')} exentos por sociedad. Distribuir hasta ${f(EXENTO_DIV*n)} en total no genera retención. Pagar al socio-administrador un sueldo real por su trabajo es deducible para la empresa (ver área 2).</li>`);
+  R.push(`<li><span class="pill no">evitar</span>Préstamos o anticipos a socios: la ley los trata como dividendo anticipado con retención del 25%. Los gastos personales de socios cargados a la empresa son no deducibles y el IVA no es crédito.</li>`);
+  $('u_recs').innerHTML=R.join('');
+  // pago a cuenta
+  const saldo=Math.max(0,num('d_acum')-num('d_resta'));
+  const pc=pagoCuenta(saldo);
+  let alt='';
+  if(pc.valor>0){
+    let lim=saldo>1000000?1000000:100000;
+    const bajar=saldo-lim; const pc2=pagoCuenta(lim);
+    alt=`<div class="note" style="margin-top:10px">Si distribuye o capitaliza <b>${f(bajar)}</b> antes del 31 de julio, el saldo baja al tramo inferior y el pago a cuenta pasa de ${f(pc.valor)} a <b>${f(pc2.valor)}</b>. La tarifa se aplica al 100% del saldo, por eso cruzar un umbral por poco cuesta caro.</div>`;
+  }
+  $('u_pac').innerHTML=`<div class="kpis"><div class="kpi"><div class="l">Saldo base del pago a cuenta</div><div class="v">${f(saldo)}</div></div><div class="kpi"><div class="l">Tarifa del tramo</div><div class="v">${(pc.tasa*100).toFixed(2)}%</div></div><div class="kpi hl"><div class="l">Pago a cuenta (ago–oct)</div><div class="v">${f(pc.valor)}</div></div></div>${alt}<p class="lead" style="margin-top:10px;font-size:13px">Lo pagado se compensa con las retenciones de dividendos o el IR cuando distribuya o capitalice dentro de los dos ejercicios siguientes. Si no lo hace, se pierde y se registra como gasto no deducible. Capitalizar utilidades también recupera el valor.</p>`;
+}
+
+function drawBars(id,items){
+  const mx=Math.max(1,...items.map(i=>i.tot));
+  const best=Math.min(...items.map(i=>i.tot));
+  $(id).innerHTML=items.map(i=>`<div class="bar"><div class="nm">${i.nm}<small>${i.sm||''}</small></div><div class="track" title="${i.nm}: ${f(i.tot)}"><div class="fill" style="width:100%">${i.segs.map(s=>`<span class="${s[1]}" style="width:${(Math.max(0,s[0])/mx*100).toFixed(2)}%"></span>`).join('')}</div><span class="val">${f(i.tot)}${i.tot===best&&items.length>1?' ✓':''}</span></div></div>`).join('');
+}
+
+/* ---------- Área 2 ---------- */
+function renderFact(){
+  const Y=num('f_y'), C=num('f_c'), n=Math.max(1,Math.round(num('f_n'))), S=num('f_s');
+  const trab=$('f_trab').checked, rok=$('f_rimpeok').checked;
+  const U=Y-C;
+  const opts=[];
+  // PN general
+  {const pt=trab?Math.max(0,U*.15):0;const ir=irPN(U-pt);opts.push({nm:'Persona natural · régimen general',sm:'tabla progresiva sobre utilidad',pt,ir,dv:0,ss:0,ok:true});}
+  // PN RIMPE
+  {const ok=rok&&Y<=300000;let ir=Y<=20000?rimpePop(Y):rimpeEmp(Y);const pt=trab?Math.max(0,U*.15):0;
+   opts.push({nm:'Persona natural · RIMPE',sm:Y<=20000?'negocio popular · cuota fija':'emprendedor · 1%–2% de ingresos',pt,ir,dv:0,ss:0,ok,why:!rok?'actividad excluida':Y>300000?'supera USD 300.000':''});}
+  // Sociedad general sin sueldo
+  {const pt=trab?Math.max(0,U*.15):0;const ir=Math.max(0,(U-pt)*.25);const D=Math.max(0,U-pt-ir);opts.push({nm:'Sociedad · régimen general',sm:'25% + dividendos 12%',pt,ir,dv:divTax(D,n,.12),ss:0,ok:true});}
+  // Sociedad + sueldo socio
+  {const costoS=S*(1+.1215+.0833)+S/12+SBU; const U2=U-costoS; const pt=trab?Math.max(0,U2*.15):0; const ir=Math.max(0,(U2-pt)*.25); const D=Math.max(0,U2-pt-ir);
+   const iess=S*(.0945+.1215); const irp=irPN(S*(1-.0945));
+   // carga = impuestos y aportes; el resto del costo laboral (décimos, fondos de reserva) llega al socio
+   opts.push({nm:'Sociedad · general + sueldo al socio',sm:`sueldo ${f(S)} con IESS y décimos`,pt,ir,dv:divTax(D,n,.12),ss:iess+irp,ok:S>0,why:S>0?'':'ingrese un sueldo',iessOnly:iess,irp});}
+  // Sociedad RIMPE
+  {const ok=rok&&Y<=300000;const pt=trab?Math.max(0,U*.15):0;const ir=rimpeEmp(Y);const D=Math.max(0,U-pt-ir);opts.push({nm:'Sociedad · RIMPE emprendedor',sm:'1%–2% de ingresos + dividendos 12%',pt,ir,dv:divTax(D,n,.12),ss:0,ok,why:!rok?'actividad excluida':Y>300000?'supera USD 300.000':''});}
+  opts.forEach(o=>{o.tot=o.pt+o.ir+o.dv+o.ss;o.neto=U-o.tot});
+  const valid=opts.filter(o=>o.ok);
+  const best=valid.reduce((a,b)=>b.tot<a.tot?b:a,valid[0]);
+  drawBars('f_bars',opts.map(o=>({nm:o.nm+(o.ok?'':' ✗'),sm:o.ok?o.sm:'no disponible: '+o.why,segs:[[o.pt,'seg-pt'],[o.ir,'seg-ir'],[o.dv,'seg-dv'],[o.ss,'seg-ss']],tot:o.ok?o.tot:0})));
+  $('f_tab').innerHTML='<thead><tr><th>Alternativa</th><th class="n">15%</th><th class="n">IR</th><th class="n">IR div.</th><th class="n">Sueldo: IR+IESS</th><th class="n">Carga</th><th class="n">Tasa ef.</th><th class="n">Neto dueño</th></tr></thead><tbody>'+
+    opts.map(o=>`<tr class="${o===best?'best':''}${o.ok?'':' sub'}"><td>${o.nm}${o.ok?'':' <span class="pill no">'+o.why+'</span>'}</td><td class="n">${f(o.pt)}</td><td class="n">${f(o.ir)}</td><td class="n">${f(o.dv)}</td><td class="n">${f(o.ss)}</td><td class="n">${f(o.tot)}</td><td class="n">${pct(U>0?o.tot/U:0)}</td><td class="n">${f(o.neto)}</td></tr>`).join('')+'</tbody>';
+  const margen=Y>0?U/Y:0;
+  const R=[];
+  R.push(`<li><span class="pill ok">mejor</span>Con estos datos, <b>${best.nm}</b> deja la menor carga: ${f(best.tot)} (${pct(U>0?best.tot/U:0)} de la utilidad de ${f(U)}).</li>`);
+  R.push(`<li><b>Margen ${pct(margen)}:</b> el RIMPE grava ingresos, no utilidad. Equivale a un IR de ${pct(U>0?rimpeEmp(Y)/U:0)} sobre su utilidad. Con márgenes altos el RIMPE es barato; con márgenes bajos o pérdidas, se paga aunque no haya ganancia.</li>`);
+  const sg=opts[3];
+  if(S>0) R.push(`<li><b>Sueldo al socio:</b> es deducible para la sociedad y reduce también el 15%, pero genera IESS (${f(sg.iessOnly)}) e IR personal (${f(sg.irp)}). A cambio, el socio gana cobertura de seguridad social, décimos y jubilación. El sueldo debe corresponder a funciones reales y a valores de mercado.</li>`);
+  R.push(`<li><b>Persona natural vs. sociedad:</b> la persona natural llega a 37% marginal sobre USD 109.956; la sociedad paga 25% más 12% al distribuir, con USD 1.446 exentos por socio. La sociedad además limita la responsabilidad y permite retener utilidades, aunque sobre USD 100.000 acumulados aparece el pago a cuenta.</li>`);
+  R.push(`<li><span class="pill no">evitar</span>Dividir la facturación entre familiares o empresas nuevas solo para no superar USD 300.000 o bajar de tramo. El SRI puede consolidar por sustancia económica (Art. 17 Código Tributario) y recategorizar con intereses y recargo del 20%.</li>`);
+  $('f_recs').innerHTML=R.join('');
+}
+
+/* ---------- Área 3 ---------- */
+function renderIva(){
+  const vg=num('i_vg'), v0=num('i_v0'), vx=num('i_vx'), cg=num('i_cg'), ret=num('i_ret'), ca=num('i_ca');
+  const tot=vg+v0+vx; const fac=tot>0?(vg+vx)/tot:1;
+  const deb=vg*.15, crB=cg*.15, cr=crB*fac, costo=crB-cr;
+  const neto=deb-cr-ret-ca;
+  const pagar=Math.max(0,neto), favor=Math.max(0,-neto);
+  $('i_kpis').innerHTML=`<div class="kpi"><div class="l">IVA cobrado (débito)</div><div class="v">${f(deb)}</div></div><div class="kpi"><div class="l">Crédito utilizable</div><div class="v">${f(cr)}</div></div><div class="kpi ${pagar>0?'hl':''}"><div class="l">${pagar>0?'IVA a pagar':'Saldo a favor'}</div><div class="v">${f(pagar>0?pagar:favor)}</div></div><div class="kpi"><div class="l">IVA que se vuelve costo</div><div class="v">${f(costo)}</div></div>`;
+  $('i_tab').innerHTML=`<tbody>
+   <tr><td>Factor de proporcionalidad (ventas gravadas y exportaciones / ventas totales)</td><td class="n">${pct(fac)}</td></tr>
+   <tr><td>IVA pagado en compras</td><td class="n">${f(crB)}</td></tr>
+   <tr><td>(−) Crédito tributario del mes (IVA compras × factor)</td><td class="n">${f(cr)}</td></tr>
+   <tr><td>(−) Retenciones de IVA recibidas</td><td class="n">${f(ret)}</td></tr>
+   <tr><td>(−) Crédito del mes anterior</td><td class="n">${f(ca)}</td></tr>
+   <tr class="sum"><td>${pagar>0?'IVA a pagar al SRI':'Crédito para el mes siguiente'}</td><td class="n">${f(pagar>0?pagar:favor)}</td></tr></tbody>`;
+  let nt='';
+  if(costo>0) nt+=`<div class="note w">Por tener ventas tarifa 0%, ${f(costo)} del IVA de compras no se recupera y pasa a ser costo o gasto deducible para el IR. Identificar compras usadas solo en ventas gravadas y aplicarles crédito total (Art. 66 LRTI, con contabilidad separada) puede reducir esa pérdida.</div>`;
+  else nt+=`<div class="note">Todas sus ventas dan derecho a crédito: el IVA es neutral para la empresa. Usted solo recauda para el SRI el 15% del valor que agrega (${f(Math.max(0,vg-cg)*.15)} sobre un valor agregado de ${f(Math.max(0,vg-cg))}).</div>`;
+  if(vx>0) nt+=`<div class="note" style="margin-top:8px">Por exportar, el crédito acumulado atribuible a exportaciones puede solicitarse en devolución (Art. 72 LRTI).</div>`;
+  if(favor>0) nt+=`<div class="note w" style="margin-top:8px">Saldo a favor de ${f(favor)}: se arrastra al mes siguiente y caduca a los cinco años. Si proviene de retenciones de IVA, puede pedirse devolución o compensación.</div>`;
+  nt+=`<p class="lead" style="margin-top:8px;font-size:13px">Desde el 1 de junio de 2026 la declaración mensual de IVA solo se tiene por presentada con el pago total.</p>`;
+  $('i_note').innerHTML=nt;
+  // flujo SVG
+  const ivaPagoCliente=deb;
+  $('i_flow').innerHTML=`
+   <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+   ${box(20,40,'Proveedor','vende base '+f(cg))}${box(340,40,'Su empresa','vende base '+f(vg+v0+vx))}${box(660,40,'Cliente','paga '+f(vg+ivaPagoCliente+v0+vx))}${box(340,130,'SRI','recibe '+f(pagar)+(ret?' + ret. '+f(ret):''),'acc')}
+   <line x1="220" y1="65" x2="335" y2="65" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+   <text x="228" y="56" class="mono">IVA ${f(crB)}</text>
+   <line x1="540" y1="65" x2="655" y2="65" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ah)"/>
+   <text x="548" y="56" class="mono">IVA ${f(deb)}</text>
+   <line x1="440" y1="92" x2="440" y2="125" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ah)"/>
+   <text x="452" y="113" class="mut">débito − crédito − retenciones</text>
+   <text x="20" y="182" class="mut">El proveedor entrega al SRI su propia diferencia; en cada eslabón solo se paga IVA sobre el valor agregado. El consumidor final es quien soporta el 15%.</text>`;
+  function box(x,y,t,s,c){return `<rect x="${x}" y="${y}" width="200" height="52" rx="5" fill="${c?'var(--accent-soft)':'var(--sunk)'}" stroke="${c?'var(--accent)':'var(--line)'}"/><text x="${x+12}" y="${y+21}" font-weight="600" font-size="14">${t}</text><text x="${x+12}" y="${y+40}" class="mono">${s}</text>`}
+
+  // grupo económico: hasta 6 facturaciones
+  const ops=[];
+  for(let i=0;i<6;i++){if(!$('g_on_'+i).checked)continue;const P=num('g_p_'+i);if(P<=0)continue;
+    const o={n:i+1,em:$('g_em_'+i).value.trim()||'Empresa A',re:$('g_re_'+i).value.trim()||'Empresa B',P,rt:parseFloat($('g_tp_'+i).value),tp:$('g_tp_'+i).selectedOptions[0].textContent,m:Math.max(0,num('g_m_'+i))/100,fb:Math.min(100,Math.max(0,num('g_fb_'+i)))/100,ag:$('g_ag_'+i).value==='1'};
+    o.iva=P*.15;o.ret=o.ag?o.iva*o.rt:0;o.cred=o.iva*o.fb;o.costo=o.iva-o.cred;o.cash=P+o.iva-o.ret;
+    const irM=P*o.m*.25*.85, ptM=P*o.m*.15;o.cont=o.iva+irM+ptM+.2*(o.iva+irM);ops.push(o)}
+  const S=k=>ops.reduce((a,o)=>a+o[k],0);
+  const tIva=S('iva'),tRet=S('ret'),tCred=S('cred'),tCosto=S('costo'),tCont=S('cont'),tP=S('P');
+  $('g_kpis').innerHTML=`<div class="kpi"><div class="l">Facturaciones activas</div><div class="v">${ops.length}</div></div>
+   <div class="kpi"><div class="l">IVA facturado en el grupo</div><div class="v">${f(tIva)}</div></div>
+   <div class="kpi"><div class="l">IVA que recuperan los receptores</div><div class="v">${f(tCred)}</div></div>
+   <div class="kpi ${tCosto>0?'':'hl'}"><div class="l">IVA que el grupo no recupera</div><div class="v">${f(tCosto)}</div></div>
+   <div class="kpi"><div class="l">Retenciones de IVA practicadas</div><div class="v">${f(tRet)}</div></div>`;
+  $('g_tab').innerHTML='<thead><tr><th>#</th><th>Operación</th><th class="n">Base</th><th class="n">IVA 15%</th><th class="n">Retención IVA</th><th class="n">Cobra el emisor</th><th class="n">Crédito del receptor</th><th class="n">IVA no recuperable</th></tr></thead><tbody>'+
+   (ops.length?ops.map(o=>`<tr><td class="n">${o.n}</td><td>${o.em} → ${o.re}<br><small style="color:var(--muted)">${o.tp} · receptor ${pct(o.fb)} gravado${o.ag?'':' · no retiene'}</small></td><td class="n">${f(o.P)}</td><td class="n">${f(o.iva)}</td><td class="n">${f(o.ret)}</td><td class="n">${f(o.cash)}</td><td class="n">${f(o.cred)}</td><td class="n" style="color:${o.costo>0?'var(--bad)':'inherit'}">${f(o.costo)}</td></tr>`).join(''):'<tr><td colspan="8">Active al menos una facturación con valor.</td></tr>')+
+   `<tr class="sum"><td></td><td>Total</td><td class="n">${f(tP)}</td><td class="n">${f(tIva)}</td><td class="n">${f(tRet)}</td><td class="n">${f(tP+tIva-tRet)}</td><td class="n">${f(tCred)}</td><td class="n">${f(tCosto)}</td></tr></tbody>`;
+  // posición por empresa
+  const emp={};const E=n=>emp[n]||(emp[n]={deb:0,retRec:0,ivaComp:0,cred:0,retPrac:0});
+  ops.forEach(o=>{const a=E(o.em),b=E(o.re);a.deb+=o.iva;a.retRec+=o.ret;b.ivaComp+=o.iva;b.cred+=o.cred;b.retPrac+=o.ret});
+  $('g_emp').innerHTML='<thead><tr><th>Empresa</th><th class="n">IVA cobrado (débito)</th><th class="n">Le retuvieron</th><th class="n">IVA pagado en compras</th><th class="n">Crédito utilizable</th><th class="n">Neto a pagar (+) / a favor (−)</th><th class="n">Retenciones que entrega al SRI</th></tr></thead><tbody>'+
+   Object.entries(emp).map(([n,e])=>{const net=e.deb-e.retRec-e.cred;return `<tr><td>${n}</td><td class="n">${f(e.deb)}</td><td class="n">${f(e.retRec)}</td><td class="n">${f(e.ivaComp)}</td><td class="n">${f(e.cred)}</td><td class="n" style="color:${net<0?'var(--good)':'inherit'}">${f(net)}</td><td class="n">${f(e.retPrac)}</td></tr>`}).join('')+'</tbody>';
+  // no facturar
+  $('g_nofact').innerHTML=`
+   <p class="lead">Si las operaciones son reales, no facturar no es una alternativa legal. Toda transferencia de bienes o prestación de servicios exige comprobante de venta, también entre empresas del mismo grupo, y una transferencia gratuita de bienes sigue gravada con IVA.</p>
+   <div class="tw" style="margin-top:12px"><table><thead><tr><th>#</th><th class="n">Ahorro aparente</th><th class="n">Contingencia</th><th class="n">Veces</th></tr></thead><tbody>
+    ${ops.map(o=>`<tr><td>${o.n} · ${o.em} → ${o.re}</td><td class="n">${f(o.costo)}</td><td class="n" style="color:var(--bad)">${f(o.cont)}</td><td class="n">${o.costo>0?(o.cont/o.costo).toFixed(1)+'×':'—'}</td></tr>`).join('')}
+    <tr class="sum"><td>Total</td><td class="n">${f(tCosto)}</td><td class="n" style="color:var(--bad)">${f(tCont)}</td><td class="n">${tCosto>0?(tCont/tCosto).toFixed(1)+'×':'—'}</td></tr></tbody></table></div>
+   <h3 style="margin-top:16px">Cómo se calcula cada operación</h3>
+   ${ops.map(o=>{const iva=o.iva, mg=o.P*o.m, ir=mg*.85*.25, pt=mg*.15, rec=.2*(iva+ir);
+     return `<details style="border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin-top:8px"><summary>#${o.n} · ${o.em} → ${o.re} · base ${f(o.P)}</summary>
+     <div class="tw" style="margin-top:8px"><table><tbody>
+      <tr class="sub"><td colspan="3"><b>Ahorro aparente</b>: el IVA que el receptor no podría recuperar si se le facturara</td></tr>
+      <tr><td>IVA de la factura</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(o.P)} × 15%</td><td class="n">${f(iva)}</td></tr>
+      <tr><td>(−) Crédito que recuperaría el receptor</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(iva)} × ${pct(o.fb)} gravado</td><td class="n">${f(-o.cred)}</td></tr>
+      <tr class="sum"><td>Ahorro aparente</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(o.P)} × 15% × ${pct(1-o.fb)}</td><td class="n">${f(o.costo)}</td></tr>
+      <tr class="sub"><td colspan="3"><b>Contingencia</b>: lo que el SRI y los trabajadores pueden reclamar al emisor si detectan la operación sin factura</td></tr>
+      <tr><td>1. IVA omitido (el emisor debía cobrarlo y declararlo completo)</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(o.P)} × 15%</td><td class="n">${f(iva)}</td></tr>
+      <tr><td>Margen omitido del emisor</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(o.P)} × ${pct(o.m)}</td><td class="n">${f(mg)}</td></tr>
+      <tr><td>2. IR sobre el margen, después del 15%</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(mg)} × 85% × 25%</td><td class="n">${f(ir)}</td></tr>
+      <tr><td>3. 15% de trabajadores sobre el margen</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">${f(mg)} × 15%</td><td class="n">${f(pt)}</td></tr>
+      <tr><td>4. Recargo del 20% sobre los impuestos determinados (IVA + IR)</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">(${f(iva)} + ${f(ir)}) × 20%</td><td class="n">${f(rec)}</td></tr>
+      <tr class="sum"><td>Contingencia mínima</td><td style="font-family:var(--f-mono);font-size:12px;color:var(--muted)">1 + 2 + 3 + 4</td><td class="n" style="color:var(--bad)">${f(o.cont)}</td></tr>
+     </tbody></table></div></details>`}).join('')}
+   <div class="note w" style="margin-top:12px;font-size:13px"><b>Por qué el IR no aparece como ahorro:</b> si no se factura, el emisor deja de declarar el ingreso, pero el receptor también pierde el gasto deducible. Si ambos pagan 25%, lo que uno se ahorra el otro lo paga: para el grupo el IR no cambia. El único ahorro posible es el IVA que el receptor no recuperaría.<br><br><b>No incluido en la contingencia</b> (la haría mayor): intereses de mora tributaria desde la fecha de cada declaración, multas por no emitir comprobantes de venta (que pueden llegar a clausura del local), el gasto no deducible de los costos que el emisor usó para servir a la relacionada, y el ajuste a valor de mercado si el SRI estima un margen mayor al ingresado.</div>
+   <ul class="recs" style="margin-top:12px">
+    <li><b>Ante la Superintendencia de Compañías:</b> transferir valor gratis entre compañías perjudica a socios minoritarios y acreedores, y debe revelarse como transacción con partes relacionadas.</li>
+   </ul>`;
+  const R=[];
+  const neutras=ops.filter(o=>o.fb>=1), costosas=ops.filter(o=>o.fb<1);
+  if(neutras.length) R.push(`<li><span class="pill ok">neutral</span>Las facturaciones ${neutras.map(o=>'#'+o.n).join(', ')} no le cuestan IVA al grupo: el receptor vende todo gravado y recupera todo el IVA. Solo mueven caja entre empresas y meses.</li>`);
+  if(costosas.length) R.push(`<li><span class="pill w">costo</span>En ${costosas.map(o=>'#'+o.n+' ('+o.re+')').join(', ')} el receptor tiene ventas 0%, por eso ${f(costosas.reduce((a,o)=>a+o.costo,0))} del IVA se vuelve costo. Ese IVA lo pagaría igual si contratara a un tercero. Alternativas legales: compras directas a terceros asignadas a ventas 0% y gravadas con contabilidad separada, reembolso de gastos sin margen, o revisar si la estructura tiene propósito de negocio.</li>`);
+  const aFavor=Object.entries(emp).filter(([n,e])=>e.deb-e.retRec-e.cred<0);
+  if(aFavor.length) R.push(`<li><b>Saldo a favor:</b> ${aFavor.map(([n])=>n).join(', ')} quedan con más crédito que débito por las retenciones que les practican sus relacionadas. Ese saldo inmoviliza caja; puede solicitarse devolución o compensación de las retenciones.</li>`);
+  R.push(`<li><b>Precio:</b> cada facturación debe estar a valor de plena competencia, con contrato, entregables y cálculo del margen. Sume las operaciones con relacionadas del año: sobre USD 3.000.000 se presenta el Anexo de Operaciones con Partes Relacionadas y sobre USD 10.000.000 también el Informe Integral de Precios de Transferencia. Total simulado: ${f(tP)}.</li>`);
+  R.push(`<li><b>Mover utilidad dentro del grupo no ahorra IR</b> cuando todas pagan 25%. Solo cambia el resultado si alguna tiene pérdidas o un régimen distinto como el RIMPE; vea la pestaña Simulación SAS.</li>`);
+  $('g_recs').innerHTML=R.join('');
+}
+
+
+/* ---------- Área 4 SAS ---------- */
+function renderSas(){
+  const U=num('s_u'), n=Math.max(1,Math.round(num('s_n'))), prof=$('s_act').value==='prof', trp=$('s_trp').checked;
+  const sas=[];
+  for(let i=0;i<4;i++){if(!$('s_on_'+i).checked){$('s_out_'+i).textContent='—';continue}
+    const o={nm:$('s_nm_'+i).value||('SAS '+(i+1)),T:num('s_t_'+i),c:num('s_c_'+i),k:num('s_k_'+i),tr:$('s_tr_'+i).value==='1',rg:$('s_rg_'+i).value,sn:Math.max(1,Math.round(num('s_sn_'+i))),rel:$('s_rel_'+i).value==='rel'};
+    o.u=o.T-o.c-o.k; $('s_out_'+i).textContent=f(o.u); sas.push(o)}
+  // A: sin SAS
+  const A={pt:trp?Math.max(0,U*.15):0}; A.ir=Math.max(0,(U-A.pt)*.25); A.dv=divTax(U-A.pt-A.ir,n,.12); A.cost=0; A.tot=A.pt+A.ir+A.dv;
+  const mov=$('s_mov').checked;
+  const sumT=sas.reduce((a,o)=>a+o.T,0), sumC=sas.reduce((a,o)=>a+o.c,0), sumK=sas.reduce((a,o)=>a+o.k,0);
+  const sumCost=sumK+(mov?0:sumC);
+  const Up=U-sumT+(mov?sumC:0);
+  function ent(u,tr,rimpe,ing,nn){nn=nn||n;const pt=tr?Math.max(0,u*.15):0;const ir=rimpe?rimpeEmp(ing):Math.max(0,(u-pt)*.25);const dv=divTax(Math.max(0,u-pt-ir),nn,.12);return {pt,ir,dv,un:u-pt-ir}}
+  // B: como se planea
+  const pB=ent(Up,trp,false,0);
+  const B={pt:pB.pt,ir:pB.ir,dv:pB.dv,cost:sumCost};
+  // C: unidad económica + RIMPE no admitido
+  const pC=ent(Up,trp,false,0);
+  const C={pt:pC.pt,ir:pC.ir,dv:pC.dv,cost:sumCost,rec:0};
+  let srcPT=0,srcRimpe=0,rimpeBad=0;
+  sas.forEach(o=>{
+    const rimpeOk=o.rg==='r'&&!prof&&o.T<=300000;
+    const b=ent(o.u,o.tr,o.rg==='r'&&o.T<=300000,o.T,o.sn); o.b=b;
+    B.pt+=b.pt;B.ir+=b.ir;B.dv+=b.dv;
+    const unif=trp&&o.rel; // unidad económica solo entre empresas vinculadas
+    const c=ent(o.u,o.tr||unif,rimpeOk,o.T,o.sn);
+    if(o.rg==='r'&&!rimpeOk&&o.T<=300000){C.rec+=.2*Math.max(0,c.ir-b.ir);rimpeBad+=Math.max(0,c.ir-b.ir)}
+    C.pt+=c.pt;C.ir+=c.ir;C.dv+=c.dv;
+    if(!o.tr&&trp)srcPT+=o.u>0?o.u*.15:0;
+    if(o.rg==='r'&&o.T<=300000){const gen=Math.max(0,(o.u-(o.tr?o.u*.15:0))*.25);srcRimpe+=gen-b.ir}
+    if(o.rg==='r'&&o.T>300000) o.over=true;
+  });
+  B.tot=B.pt+B.ir+B.dv+B.cost; C.tot=C.pt+C.ir+C.dv+C.cost+C.rec;
+  const ahorroB=A.tot-B.tot, ahorroC=A.tot-C.tot;
+  $('s_kpis').innerHTML=`<div class="kpi"><div class="l">Carga sin SAS</div><div class="v">${f(A.tot)}</div></div>
+   <div class="kpi"><div class="l">Carga con SAS (como se planea)</div><div class="v">${f(B.tot)}</div></div>
+   <div class="kpi ${ahorroB>0?'hl':''}"><div class="l">Ahorro aparente</div><div class="v">${f(ahorroB)}</div></div>
+   <div class="kpi"><div class="l">Ahorro si la autoridad unifica y recalifica</div><div class="v" style="color:${ahorroC<0?'var(--bad)':'inherit'}">${f(ahorroC)}</div></div>`;
+  drawBars('s_bars',[
+    {nm:'Sin SAS',sm:'toda la utilidad en la principal',segs:[[A.pt,'seg-pt'],[A.ir,'seg-ir'],[A.dv,'seg-dv']],tot:A.tot},
+    {nm:'Con SAS · como se planea',sm:'SAS sin trabajadores y en RIMPE según su tabla',segs:[[B.pt,'seg-pt'],[B.ir,'seg-ir'],[B.dv,'seg-dv'],[B.cost,'seg-ss']],tot:B.tot},
+    {nm:'Con SAS · si la autoridad actúa',sm:'15% unificado; RIMPE negado si la actividad está excluida',segs:[[C.pt,'seg-pt'],[C.ir,'seg-ir'],[C.dv,'seg-dv'],[C.cost+C.rec,'seg-ss']],tot:C.tot}]);
+  const dPT=A.pt-B.pt, dIR=A.ir-B.ir, dDV=A.dv-B.dv;
+  const R=(t,v,p,d)=>`<tr><td>${t}</td><td class="n">${f(v)}</td><td>${p}</td><td>${d}</td></tr>`;
+  const irRest=dIR-srcRimpe;
+  $('s_src').innerHTML='<thead><tr><th>Fuente</th><th class="n">Efecto</th><th>Riesgo</th><th>Por qué</th></tr></thead><tbody>'+
+   R('Menos 15% de trabajadores (SAS sin empleados)',dPT,trp&&dPT>0?'<span class="pill no">alto</span>':'<span class="pill ok">n/a</span>','Si las empresas están vinculadas, el Ministerio del Trabajo puede tratarlas como unidad económica y los trabajadores de la principal reclamar su parte (Art. 103 Código del Trabajo).')+
+   R('Menos IR por SAS en RIMPE (1% a 2% de ingresos en vez de 25%)',srcRimpe,srcRimpe>0?(prof?'<span class="pill no">no aplica</span>':'<span class="pill w">medio</span>'):'<span class="pill ok">n/a</span>',prof?'Servicios profesionales, consultoría y comisiones están excluidos del RIMPE, también para sociedades. El SRI reliquida al 25% con recargo del 20%.':'Legal si la SAS presta el servicio con sustancia propia, cobra precio de mercado y no supera USD 300.000. Sin sustancia, el SRI puede desconocer el gasto en la principal.')+
+   R('Resto del IR (sociedades al 25%)',irRest,'<span class="pill ok">informativo</span>','La tarifa es plana: repartir utilidad entre sociedades al 25% no baja el IR. Este valor solo refleja la interacción con el 15% (menos participación deja más base para IR) y los costos de mantener las SAS.')+
+   R('IR único sobre dividendos',dDV,'<span class="pill ok">bajo</span>','Cada sociedad que distribuye da a cada socio su propia franja exenta de USD 1.446, lo que ayuda un poco. Pero si el grupo paga menos 15% e IR, queda más utilidad para distribuir y el 12% sobre dividendos sube; por eso este valor puede salir negativo.')+
+   R('Costos nuevos de mantener las SAS',-sumCost,'<span class="pill w">cierto</span>',mov?'Contador, Superintendencia, firma, trámites. Los costos operativos trasladados no cuentan porque la principal ya los pagaba.':'Mantenimiento más los costos operativos nuevos de cada SAS.')+
+   `<tr class="sum"><td>Ahorro aparente neto</td><td class="n">${f(ahorroB)}</td><td></td><td></td></tr></tbody>`;
+  // --- impuesto por empresa ---
+  const fac=trp?(.15+.85*.25):.25;
+  const rowE=(nm,ing,u,e,soc,cls)=>`<tr class="${cls||''}"><td>${nm}</td><td class="n">${ing==null?'—':f(ing)}</td><td class="n">${f(u)}</td><td class="n">${f(e.pt)}</td><td class="n">${f(e.ir)}</td><td class="n">${f(e.pt+e.ir)}</td><td class="n">${f(Math.max(0,e.un))}</td><td class="n">${f(e.dv)}</td><td class="n">${soc}</td></tr>`;
+  const eA={pt:A.pt,ir:A.ir,dv:A.dv,un:U-A.pt-A.ir};
+  let tb='<thead><tr><th>Empresa</th><th class="n">Ingreso desde la principal</th><th class="n">Utilidad antes de 15% e IR</th><th class="n">15% trab.</th><th class="n">IR</th><th class="n">15% + IR</th><th class="n">Utilidad neta</th><th class="n">IR dividendos</th><th class="n">Socios</th></tr></thead><tbody>';
+  tb+=rowE('Principal · sin SAS (referencia)',null,U,eA,n,'sub');
+  tb+=rowE('Principal · con SAS',null,Up,pB,n);
+  sas.forEach(o=>{const rr=o.rg==='r'&&o.T<=300000;tb+=rowE(o.nm+(rr?` <span class="pill w">RIMPE · ${pct(o.T>0?o.b.ir/o.T:0)} de ingresos</span>`:(o.rg==='r'?' <span class="pill no">supera USD 300.000: general 25%</span>':' <span class="pill no">régimen general 25%</span>'))+(o.rel?'':' <span class="pill ok">independiente</span>'),o.T,o.u,o.b,o.sn)});
+  const tG={pt:pB.pt+sas.reduce((a,o)=>a+o.b.pt,0),ir:pB.ir+sas.reduce((a,o)=>a+o.b.ir,0),dv:pB.dv+sas.reduce((a,o)=>a+o.b.dv,0)};
+  tG.un=Up-pB.pt-pB.ir+sas.reduce((a,o)=>a+o.b.un,0);
+  tb+=`<tr class="sum"><td>Total todas las empresas</td><td class="n">${f(sumT)}</td><td class="n">${f(Up+sas.reduce((a,o)=>a+o.u,0))}</td><td class="n">${f(tG.pt)}</td><td class="n">${f(tG.ir)}</td><td class="n">${f(tG.pt+tG.ir)}</td><td class="n">${f(tG.un)}</td><td class="n">${f(tG.dv)}</td><td></td></tr></tbody>`;
+  $('s_emp').innerHTML=tb;
+  const ahP=(A.pt+A.ir)-(pB.pt+pB.ir), pagS=sas.reduce((a,o)=>a+o.b.pt+o.b.ir,0);
+  const dPTp=A.pt-pB.pt, dIRp=A.ir-pB.ir;
+  const ptS=sas.reduce((a,o)=>a+o.b.pt,0), irS=sas.reduce((a,o)=>a+o.b.ir,0);
+  $('s_emp_k').innerHTML=`
+   <div class="kpi"><div class="l">15% trabajadores de la principal</div><div class="v" style="font-size:15px">${f(A.pt)} → ${f(pB.pt)}</div></div>
+   <div class="kpi hl"><div class="l">La principal deja de pagar del 15%</div><div class="v">${f(dPTp)}</div></div>
+   <div class="kpi"><div class="l">IR 25% de la principal</div><div class="v" style="font-size:15px">${f(A.ir)} → ${f(pB.ir)}</div></div>
+   <div class="kpi hl"><div class="l">La principal deja de pagar del 25%</div><div class="v">${f(dIRp)}</div></div>
+   <div class="kpi hl"><div class="l">Ahorro total de la principal (15% + 25%)</div><div class="v">${f(ahP)}</div></div>
+   <div class="kpi"><div class="l">Las SAS pagan: 15% / IR</div><div class="v" style="font-size:15px">${f(ptS)} / ${f(irS)}</div></div>`;
+  const ind=sas.filter(o=>!o.rel);
+  let en='';
+  if(ind.length){const outT=ind.reduce((a,o)=>a+o.T-(mov?o.c:0),0);const ahI=outT*fac;
+    en=`<div class="note w"><b>Accionistas distintos:</b> lo que la principal paga a ${ind.map(o=>o.nm).join(', ')} sale del patrimonio de sus socios. La principal se ahorra ${f(ahI)} de 15% e IR, pero entrega ${f(outT)} a otros dueños. Para los socios de la principal el resultado neto es <b>${f(ahI-outT)}</b>: solo conviene si el servicio se necesita y su precio es de mercado, como con cualquier proveedor. Ese ahorro existe igual si contrata a cualquier empresa independiente.</div>`;}
+  en+=`<div class="note" style="margin-top:8px"><b>Dueños distintos no eliminan la vinculación por sí solos.</b> El SRI puede considerar partes relacionadas a empresas con administración común, socios familiares hasta el cuarto grado de consanguinidad o segundo de afinidad, o cuando una concentra la mayor parte de sus ventas en la otra (Art. 4.1 LRTI y su Reglamento). Una SAS que factura solo a la principal es la primera que se revisa.</div>`;
+  $('s_emp_note').innerHTML=en;
+  let tp='<thead><tr><th>SAS</th><th class="n">Pago de la principal</th><th class="n">Principal deja de pagar 15%</th><th class="n">Principal deja de pagar 25%</th><th class="n">Ahorro principal</th><th class="n">15% + IR de la SAS</th><th class="n">Neto</th><th class="n">Tasa IR de la SAS</th></tr></thead><tbody>';let sp1=0,sp2=0,sp3=0,sp4=0;
+  sas.forEach(o=>{const base=o.T-(mov?o.c:0);const ah=base*fac;const pg=o.b.pt+o.b.ir;
+    const a15=trp?base*.15:0, a25=(base-a15)*.25;sp1+=a15;sp2+=a25;sp3+=pg;sp4+=o.T;
+    tp+=`<tr><td>${o.nm}</td><td class="n">${f(o.T)}</td><td class="n">${f(a15)}</td><td class="n">${f(a25)}</td><td class="n">${f(ah)}</td><td class="n">${f(pg)}</td><td class="n" style="color:${ah-pg>=0?'var(--good)':'var(--bad)'}">${f(ah-pg)}</td><td class="n">${pct(o.u>0?o.b.ir/o.u:0)}</td></tr>`});
+  tp+=`<tr class="sum"><td>Total</td><td class="n">${f(sp4)}</td><td class="n">${f(sp1)}</td><td class="n">${f(sp2)}</td><td class="n">${f(sp1+sp2)}</td><td class="n">${f(sp3)}</td><td class="n">${f(sp1+sp2-sp3)}</td><td></td></tr></tbody>`;
+  $('s_par').innerHTML=tp+`<caption style="caption-side:bottom;text-align:left;font-size:12.5px;color:var(--muted);padding-top:8px">El ahorro de la principal es ${pct(fac)} de lo pagado${mov?', descontando los costos que ya tenía y que se trasladan a la SAS':''}${trp?' (15% más 25% sobre el 85% restante)':' (solo IR al 25%; la principal no tiene trabajadores)'}. Si una SAS en régimen general tiene trabajadores, paga la misma tasa y el neto queda cerca de cero menos su costo de mantenimiento.</caption>`;
+  const L=[];
+  L.push(`<li><span class="pill ${ahorroC>0?'ok':'no'}">conclusión</span>${ahorroC>0?`Aun en el peor escenario queda un ahorro de <b>${f(ahorroC)}</b>, que viene de componentes defendibles. Revise que cada SAS cumpla los requisitos de la derecha.`:`El ahorro de <b>${f(ahorroB)}</b> depende de que nadie aplique la unidad económica ni recalifique el RIMPE. Si la autoridad actúa, el grupo paga <b>${f(-ahorroC)}</b> más que sin SAS, por los costos de mantenerlas y el recargo.`}</li>`);
+  if(sas.every(o=>o.rg==='g')) L.push(`<li><b>Con todas las SAS en régimen general</b> el IR no baja: la única diferencia es el 15% de trabajadores y las franjas exentas de dividendos. El esquema solo "ahorra" si las SAS no tienen trabajadores, que es justamente lo que la unidad económica neutraliza.</li>`);
+  sas.filter(o=>o.over).forEach(o=>L.push(`<li><span class="pill no">error</span><b>${o.nm}</b> factura más de USD 300.000: no puede estar en RIMPE. Se calculó en régimen general.</li>`));
+  sas.filter(o=>o.T>0&&o.c/o.T<.15).forEach(o=>L.push(`<li><span class="pill w">sustancia</span><b>${o.nm}</b> tiene costos propios de solo ${pct(o.c/o.T)} de lo que factura. Una SAS que cobra mucho y casi no tiene estructura es la primera que el SRI revisa.</li>`));
+  L.push(`<li><b>Alternativa legítima: holding SAS.</b> Si la principal distribuye dividendos a una SAS holding residente en vez de a los socios, no hay retención del 12% en ese momento; se paga cuando la holding distribuye a las personas. Sirve para reinvertir en otros negocios del grupo. La holding puede compensar el pago a cuenta sobre utilidades no distribuidas con sus retenciones.</li>`);
+  L.push(`<li><b>Otra vía legítima:</b> una SAS que tiene clientes propios fuera del grupo (no solo la principal) y personal propio es una empresa real. Ahí el RIMPE o un régimen distinto es una elección válida, no un traslado de utilidad.</li>`);
+  $('s_recs').innerHTML=L.join('');
+  const rimpeSas=sas.filter(o=>o.rg==='r'&&o.T<=300000);
+  $('s_res').innerHTML=`<div class="tw"><table><tbody>
+   <tr><td>La empresa principal deja de pagar del <b>15% de trabajadores</b></td><td class="n">${f(dPTp)}</td></tr>
+   <tr><td>La empresa principal deja de pagar del <b>25% de impuesto a la renta</b></td><td class="n">${f(dIRp)}</td></tr>
+   <tr class="sum"><td>Ahorro de la empresa principal</td><td class="n">${f(dPTp+dIRp)}</td></tr>
+   <tr><td>(−) 15% que pagan las SAS</td><td class="n">${f(-ptS)}</td></tr>
+   <tr><td>(−) Impuesto a la renta que pagan las SAS${rimpeSas.length?' ('+rimpeSas.map(o=>o.nm).join(', ')+' en RIMPE)':''}</td><td class="n">${f(-irS)}</td></tr>
+   <tr><td>(−) Cambio en el IR sobre dividendos (12%)</td><td class="n">${f(dDV)}</td></tr>
+   <tr><td>(−) Costos nuevos de mantener las SAS</td><td class="n">${f(-sumCost)}</td></tr>
+   <tr class="sum"><td>Ahorro neto del grupo</td><td class="n">${f(ahorroB)}</td></tr>
+   <tr class="sub"><td>Ahorro si la autoridad unifica el 15% y revisa el RIMPE</td><td class="n">${f(ahorroC)}</td></tr>
+  </tbody></table></div>
+  <p style="margin-top:12px;max-width:80ch">En palabras simples: al pagar ${f(sumT)} a las SAS, la principal deja de pagar <b>${f(dPTp)}</b> de participación de trabajadores y <b>${f(dIRp)}</b> de impuesto a la renta. Las SAS pagan en conjunto <b>${f(ptS+irS)}</b> por recibir ese dinero${rimpeSas.length?', porque en RIMPE tributan entre 1% y 2% de sus ingresos':''}. Descontando dividendos y costos, el grupo ahorra <b>${f(ahorroB)}</b> al año.${trp&&dPT>0?` De ese ahorro, <b>${f(dPT)}</b> viene de que las SAS no tienen trabajadores. Si se unifica el reparto de utilidades con las SAS vinculadas y se revisa el RIMPE, el ahorro baja a <b>${f(ahorroC)}</b>, que es la cifra más segura para planificar.`:''}</p>`;
+}
+
+
+/* ---------- Área 5 Provisiones ---------- */
+const PST={D:['ok','Deducible'],L:['w','Con límite'],T:['acc','Diferida'],N:['no','No deducible'],C:['w','Condicional']};
+const PROV=[
+ {id:'inc',nm:'Cuentas incobrables de cartera comercial',st:'L',calc:false,base:'Art. 10 num. 11 LRTI · Art. 28 num. 3 RLRTI',cond:'1% anual de los créditos comerciales concedidos en el ejercicio y pendientes al cierre, sin que la provisión acumulada supere el 10% de la cartera total. El exceso se trata como deterioro de activos financieros con impuesto diferido. La baja definitiva exige, entre otros, un año de vencimiento, prescripción, quiebra o insolvencia del deudor.'},
+ {id:'rel',nm:'Incobrables de créditos a socios, familiares o relacionadas',st:'N',v:0,base:'Art. 10 num. 11 LRTI',cond:'No son deducibles las provisiones por créditos concedidos al socio, su cónyuge, parientes hasta el cuarto grado de consanguinidad o segundo de afinidad, ni a sociedades relacionadas.'},
+ {id:'jub',nm:'Jubilación patronal',st:'T',v:8000,base:'Circular NAC-DGECCGC23-00000006 · RLRTI Art. 28 (impuestos diferidos)',cond:'Requiere estudio actuarial. No deducible al registrarse desde la derogatoria del num. 13 del Art. 10 LRTI; se deduce cuando se paga la pensión. Los reversos se gravan en la proporción en que fueron deducibles.'},
+ {id:'des',nm:'Desahucio',st:'T',v:3000,base:'Circular NAC-DGECCGC23-00000006 · Código del Trabajo Art. 185',cond:'Con estudio actuarial. Se deduce al pagarse cuando termina la relación laboral.'},
+ {id:'ben',nm:'Beneficios sociales devengados: décimos, vacaciones, fondos de reserva',st:'C',v:12000,pago:true,base:'Art. 10 num. 9 LRTI · Art. 28 num. 1 RLRTI',cond:'Deducibles en el año en que se devengan siempre que se paguen y se cumplan los aportes al IESS hasta la fecha de presentación de la declaración del IR.'},
+ {id:'bon',nm:'Bonificaciones y comisiones al personal por pagar al cierre',st:'C',v:5000,pago:true,base:'Art. 10 num. 9 LRTI',cond:'Igual que las remuneraciones: deducibles si están aportadas al IESS hasta la fecha de la declaración. Sin aporte, no deducibles.'},
+ {id:'gfa',nm:'Costos y gastos devengados sin factura al cierre',st:'C',v:4000,pago:true,pagoTxt:'Tiene comprobante del ejercicio',base:'Art. 10 LRTI · Reglamento de Comprobantes de Venta',cond:'El gasto debe sustentarse en comprobante de venta válido. Sin comprobante emitido a nombre de la empresa, el gasto no es deducible aunque esté devengado. Pagos sobre USD 1.000 deben bancarizarse (Art. 103 LRTI).'},
+ {id:'imp',nm:'Impuestos y contribuciones devengados (patente, 1,5 por mil, predios, contribución a la Superintendencia)',st:'D',v:3500,base:'Art. 10 num. 3 LRTI',cond:'Deducibles los tributos que no sean el IR propio ni impuestos que den derecho a crédito tributario. Deben corresponder al ejercicio.'},
+ {id:'irp',nm:'Impuesto a la renta del ejercicio',st:'N',calc:false,base:'Art. 10 num. 3 LRTI',cond:'El IR no es deducible de su propia base. La participación de trabajadores sí se resta en la conciliación tributaria.'},
+ {id:'gar',nm:'Garantías de productos o servicios',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'No deducible al registrarse. Se deduce cuando la empresa efectivamente gasta en atender la garantía y hasta ese monto.'},
+ {id:'lit',nm:'Juicios y litigios (laborales, civiles, administrativos)',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'No deducible al registrarse. Se deduce cuando se paga la obligación por sentencia o acuerdo.'},
+ {id:'dsm',nm:'Desmantelamiento o restauración de activos',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'La depreciación del valor activado por desmantelamiento y sus intereses no son deducibles; se deducen cuando se ejecuta el desmantelamiento.'},
+ {id:'vnr',nm:'Deterioro de inventarios a valor neto de realización',st:'T',v:2000,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'No deducible al registrarse. Se deduce cuando el inventario se vende, se autoconsume o se da de baja.'},
+ {id:'baj',nm:'Baja de inventario por destrucción, daño u obsolescencia (no es provisión)',st:'D',calc:false,base:'Art. 28 num. 8 RLRTI',cond:'Deducible cuando se justifica con declaración juramentada ante notario y acta de destrucción o donación, según el procedimiento del Reglamento.'},
+ {id:'ppe',nm:'Deterioro de propiedad, planta y equipo',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'No deducible al registrarse. Se recupera mediante la depreciación dentro de los límites, o al vender o dar de baja el activo.'},
+ {id:'ctr',nm:'Pérdidas esperadas en contratos de construcción',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'No deducible al registrarse; se deduce cuando la pérdida se realiza al finalizar el contrato.'},
+ {id:'bio',nm:'Cambios de valor razonable de activos biológicos',st:'T',v:0,base:'RLRTI Art. 28 (impuestos diferidos)',cond:'Las pérdidas o ganancias por medición a valor razonable no afectan el IR hasta la venta o cosecha.'},
+ {id:'plu',nm:'Deterioro de plusvalía, intangibles o inversiones en acciones',st:'N',v:0,base:'Art. 10 LRTI (no está entre las deducciones ni entre los casos de impuesto diferido)',cond:'Tratado como no deducible. Verifique con su asesor si el intangible tiene un régimen de amortización específico.'},
+ {id:'man',nm:'Mantenimiento mayor o reparaciones futuras',st:'N',v:0,base:'Art. 10 LRTI · NIC 37',cond:'No hay obligación presente, por lo que contablemente no procede y tributariamente no es deducible. El gasto se deduce cuando se realiza el mantenimiento.'}
+];
+function renderProvCalc(){
+  $('p_calc').innerHTML='<thead><tr><th>Provisión</th><th>Trato</th><th class="n">Monto del año</th></tr></thead><tbody>'+
+  PROV.filter(x=>x.calc!==false).map(x=>{const st=PST[x.st];
+   return `<tr><td>${x.nm}${x.pago?`<label class="chk" style="margin-top:6px;font-size:12.5px;color:var(--muted)"><input type="checkbox" id="pp_${x.id}" checked> ${x.pagoTxt||'Pagado y aportado al IESS hasta la declaración'}</label>`:''}</td><td>${pill(x.st)}</td><td class="n"><input type="number" id="pv_${x.id}" value="${x.v}" min="0" step="100" style="max-width:130px"></td></tr>`}).join('')+'</tbody>';
+  $('p_cat').innerHTML='<thead><tr><th>Provisión</th><th>Trato en IR</th><th>Base legal</th><th>Condiciones</th></tr></thead><tbody>'+
+   ['D','C','L','T','N'].map(k=>PROV.filter(x=>x.st===k).map(x=>`<tr><td><b>${x.nm}</b></td><td>${pill(x.st)}</td><td style="font-family:var(--f-mono);font-size:12px;min-width:160px">${x.base}</td><td style="min-width:260px;font-size:13.5px">${x.cond}</td></tr>`).join('')).join('')+'</tbody>';
+}
+function pill(k){const st=PST[k];return st[0]==='acc'?`<span class="pill" style="background:var(--accent-soft);color:var(--accent)">${st[1]}</span>`:`<span class="pill ${st[0]}">${st[1]}</span>`}
+function renderProv(){
+  const cr=num('p_inc_cr'),cart=num('p_inc_cart'),acum=num('p_inc_acum'),reg=num('p_inc_reg');
+  const lim1=cr*.01, lim10=Math.max(0,cart*.10-acum);
+  const incD=Math.min(reg,lim1,lim10), incT=Math.max(0,reg-incD);
+  $('p_inc_out').innerHTML=`Tope anual (1% de créditos del año): <b>${f(lim1)}</b> · espacio hasta el 10% de la cartera: <b>${f(lim10)}</b>. Deducible este año: <b>${f(incD)}</b>${incT>0?`; el exceso de <b>${f(incT)}</b> es diferido y se deduce al dar de baja la cuenta incobrable.`:'.'}`;
+  let D=incD,T=incT,Nn=0; const rows=[];
+  rows.push({nm:'Cuentas incobrables',d:incD,t:incT,n:0});
+  PROV.filter(x=>x.calc!==false).forEach(x=>{const v=num('pv_'+x.id);if(!v)return;let r={nm:x.nm,d:0,t:0,n:0};
+    if(x.st==='D')r.d=v;else if(x.st==='T')r.t=v;else if(x.st==='N')r.n=v;else if(x.st==='C'){if($('pp_'+x.id).checked)r.d=v;else r.n=v}
+    D+=r.d;T+=r.t;Nn+=r.n;rows.push(r)});
+  const tot=D+T+Nn;
+  $('p_kpis').innerHTML=`<div class="kpi"><div class="l">Total provisiones del año</div><div class="v">${f(tot)}</div></div>
+   <div class="kpi hl"><div class="l">Menos 15% de trabajadores</div><div class="v">${f(tot*.15)}</div></div>
+   <div class="kpi hl"><div class="l">Menos IR este año (neto del efecto del 15%)</div><div class="v">${f(.25*(.85*D-.15*(T+Nn)))}</div></div>
+   <div class="kpi"><div class="l">Activo por impuesto diferido</div><div class="v">${f(T*.25)}</div></div>
+   <div class="kpi"><div class="l">No deducible permanente</div><div class="v">${f(Nn)}</div></div>`;
+  const mx=Math.max(1,...rows.map(r=>r.d+r.t+r.n));
+  $('p_bars').innerHTML=rows.map(r=>`<div class="bar"><div class="nm">${r.nm}</div><div class="track"><div class="fill" style="width:100%"><span style="background:var(--good);width:${(r.d/mx*100).toFixed(2)}%"></span><span style="background:var(--accent);width:${(r.t/mx*100).toFixed(2)}%"></span><span style="background:var(--bad);width:${(r.n/mx*100).toFixed(2)}%"></span></div><span class="val">${f(r.d+r.t+r.n)}</span></div></div>`).join('');
+  const R=[];
+  R.push(`<li><span class="pill ok">clave</span><b>Toda provisión contable reduce el 15% de trabajadores</b>, sea deducible o no para el IR: la participación se calcula sobre la utilidad contable. Por eso el registro correcto de provisiones al cierre siempre tiene efecto.</li>`);
+  if(T>0) R.push(`<li><b>Diferidas por ${f(T)}:</b> registre el activo por impuesto diferido de ${f(T*.25)} y lleve un control por partida. Ese impuesto se recupera el año en que pague la jubilación, el juicio, la garantía o venda el inventario.</li>`);
+  if(incT>0) R.push(`<li><b>Incobrables:</b> registrar más del tope no se pierde, pero solo ${f(incD)} bajan el IR este año. Antes del cierre, revise qué créditos ya cumplen condiciones para darse de baja definitivamente, porque la baja sí es deducible.</li>`);
+  if(Nn>0) R.push(`<li><span class="pill no">revisar</span>${f(Nn)} no serán deducibles. Si son remuneraciones, pague y aporte al IESS antes de la fecha de su declaración; si son gastos sin factura, pida el comprobante con fecha del ejercicio.</li>`);
+  R.push(`<li><b>Respaldo:</b> estudio actuarial firmado por perito calificado para jubilación y desahucio, informe de antigüedad de cartera para incobrables, informes legales para juicios y cálculos de valor neto de realización para inventarios. Sin respaldo, el SRI trata la provisión como no deducible.</li>`);
+  $('p_recs').innerHTML=R.join('');
+}
+
+/* ---------- Navegación y persistencia ---------- */
+const VIEWS=['utilidad','facturacion','iva','sas','provisiones','base-legal'];
+function show(){let h=(location.hash||'#utilidad').slice(1);if(!VIEWS.includes(h))h='utilidad';
+  VIEWS.forEach(v=>{$('v-'+v).hidden=(v!==h)});document.querySelectorAll('nav.tabs a').forEach(a=>{a.getAttribute('data-v')===h?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current')})}
+window.addEventListener('hashchange',show);
+renderLevers();
+renderProvCalc();
+const KEY='plan-trib-ec-v1';
+try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');for(const k in s){const el=$(k);if(!el)continue;if(el.type==='checkbox')el.checked=s[k];else el.value=s[k]}}catch(e){}
+function save(){try{const s={};document.querySelectorAll('input,select').forEach(el=>{if(el.id)s[el.id]=el.type==='checkbox'?el.checked:el.value});localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function all(){for(const fn of [renderUtil,renderFact,renderIva,renderSas,renderProv]){try{fn()}catch(e){console.error(fn.name,e)}}save()}
+document.addEventListener('input',all);document.addEventListener('change',all);
+show();all();
+window.PT={snap:()=>{const o={};document.querySelectorAll('.wrap input,.wrap select').forEach(el=>{if(el.id&&!el.id.startsWith('fb_'))o[el.id]=el.type==='checkbox'?el.checked:el.value});return o},apply:o=>{for(const k in o){const el=$(k);if(!el)continue;if(el.type==='checkbox')el.checked=!!o[k];else el.value=o[k]}all()},resumen:()=>({carga:($('u_kpis').querySelectorAll('.v')[1]||{}).textContent||'',ahorro:($('u_kpis').querySelectorAll('.v')[2]||{}).textContent||''})};
+})();
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ===== CONFIGURACIÓN FIREBASE: reemplace con la de su proyecto ===== */
+const FIREBASE_CONFIG = {
+  apiKey: "PEGUE_AQUI",
+  authDomain: "PEGUE_AQUI",
+  databaseURL: "PEGUE_AQUI",
+  projectId: "PEGUE_AQUI",
+  storageBucket: "PEGUE_AQUI",
+  messagingSenderId: "PEGUE_AQUI",
+  appId: "PEGUE_AQUI"
+};
+const RAIZ = "planificador_tributario";
+/* =================================================================== */
+(function(){
+  const $=id=>document.getElementById(id);
+  const st=(t,c)=>{const e=$('fb_st');e.textContent=t;e.className='fbst'+(c?' '+c:'')};
+  if(!window.firebase||FIREBASE_CONFIG.apiKey==="PEGUE_AQUI"){st('Modo local: Firebase sin configurar. Los datos se guardan solo en este navegador.');return}
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth=firebase.auth(), db=firebase.database();
+  let uid=null, timer=null, cargando=false, confirmDel=null;
+  const ref=p=>db.ref(`${RAIZ}/${uid}/${p}`);
+  const msg=e=>({'auth/invalid-credential':'Correo o contraseña incorrectos.','auth/user-not-found':'Ese correo no tiene cuenta.','auth/wrong-password':'Contraseña incorrecta.','auth/too-many-requests':'Demasiados intentos. Espere unos minutos.','PERMISSION_DENIED':'Su usuario no tiene permiso en la base de datos. Revise las reglas.'}[e.code]||e.message);
+  $('fb_login').onclick=()=>{st('Ingresando…');auth.signInWithEmailAndPassword($('fb_email').value.trim(),$('fb_pass').value).catch(e=>st(msg(e),'err'))};
+  $('fb_pass').addEventListener('keydown',e=>{if(e.key==='Enter')$('fb_login').click()});
+  $('fb_google').onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>st(msg(e),'err'));
+  $('fb_logout').onclick=()=>auth.signOut();
+  $('fb_open').onclick=()=>{$('fb_panel').hidden=!$('fb_panel').hidden};
+  auth.onAuthStateChanged(async u=>{
+    uid=u?u.uid:null;
+    $('fb_out').hidden=!!u; $('fb_in').hidden=!u; if(!u){$('fb_panel').hidden=true;st('Sin sesión: los datos se guardan solo en este navegador.');return}
+    $('fb_user').textContent=u.email||u.displayName||'';
+    st('Cargando su último estado…');
+    try{
+      cargando=true;
+      const snap=await ref('ultimo').get();
+      if(snap.exists()&&snap.val().datos){window.PT.apply(snap.val().datos)}
+      cargando=false;
+      st('Sincronizado ✓','ok'); listar();
+    }catch(e){cargando=false;st(msg(e),'err')}
+  });
+  // autoguardado del estado actual
+  function autosave(){if(!uid||cargando)return;clearTimeout(timer);st('Guardando…');
+    timer=setTimeout(()=>{ref('ultimo').set({datos:window.PT.snap(),fecha:firebase.database.ServerValue.TIMESTAMP}).then(()=>st('Sincronizado ✓','ok')).catch(e=>st(msg(e),'err'))},1500)}
+  document.addEventListener('input',e=>{if(!e.target.id.startsWith('fb_'))autosave()});
+  document.addEventListener('change',e=>{if(!e.target.id.startsWith('fb_'))autosave()});
+  // escenarios
+  $('fb_save').onclick=()=>{const nm=$('fb_name').value.trim();if(!nm){st('Escriba un nombre para el escenario.','err');$('fb_name').focus();return}
+    $('fb_save').disabled=true;
+    ref('escenarios').push({nombre:nm,datos:window.PT.snap(),resumen:window.PT.resumen(),fecha:firebase.database.ServerValue.TIMESTAMP})
+     .then(()=>{$('fb_name').value='';st('Escenario guardado ✓','ok');listar()}).catch(e=>st(msg(e),'err')).finally(()=>$('fb_save').disabled=false)};
+  async function listar(){
+    try{const snap=await ref('escenarios').get();const v=snap.val()||{};
+      const items=Object.entries(v).sort((a,b)=>(b[1].fecha||0)-(a[1].fecha||0));
+      const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      $('fb_list').innerHTML=items.length?items.map(([k,e])=>`<div class="it"><div><b>${esc(e.nombre)}</b><small>${e.fecha?new Date(e.fecha).toLocaleString('es-EC'):''}${e.resumen&&e.resumen.ahorro?' · ahorro área 1: '+esc(e.resumen.ahorro):''}</small></div><div class="act"><button class="btn sec" data-load="${k}" type="button">Cargar</button>${confirmDel===k?`<button class="btn del" data-delok="${k}" type="button">Confirmar eliminación</button><button class="btn sec" data-delno="1" type="button">Cancelar</button>`:`<button class="btn del" data-del="${k}" type="button">Eliminar</button>`}</div></div>`).join(''):'<p class="lead">Aún no tiene escenarios guardados.</p>';
+      window._fbEsc=v;
+    }catch(e){st(msg(e),'err')}
+  }
+  $('fb_list').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.load){const d=(window._fbEsc[b.dataset.load]||{}).datos;if(d){window.PT.apply(d);autosave();st('Escenario cargado ✓','ok');window.scrollTo({top:0})}}
+    else if(b.dataset.del){confirmDel=b.dataset.del;listar()}
+    else if(b.dataset.delno){confirmDel=null;listar()}
+    else if(b.dataset.delok){ref('escenarios/'+b.dataset.delok).remove().then(()=>{confirmDel=null;st('Escenario eliminado','ok');listar()}).catch(e=>st(msg(e),'err'))}
+  });
+})();
+</script>
+</body>
+</html>
